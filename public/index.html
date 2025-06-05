@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Lock Screen UI with Custom Config, Font, Text Size & Time Format</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol&family=M+PLUS+Rounded+1c&family=Noto+Sans+JP:wght@100..900&family=Noto+Serif+JP:wght@200..900&family=Zen+Kaku+Gothic+New&family=Zen+Maru+Gothic&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%; width: 100%;
+      overflow: hidden;
+      font-family: "Noto Sans JP", sans-serif;
+      color: white;
+      background: black;
+    }
+    .noto-sans-jp-default {
+      font-family: "Noto Sans JP", sans-serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+    }
+    .noto-serif-jp-default {
+      font-family: "Noto Serif JP", serif;
+      font-optical-sizing: auto;
+      font-weight: 400;
+      font-style: normal;
+    }
+    .zen-kaku-gothic-new-regular {
+      font-family: "Zen Kaku Gothic New", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+    .m-plus-rounded-1c-regular {
+      font-family: "M PLUS Rounded 1c", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+    .zen-maru-gothic-regular {
+      font-family: "Zen Maru Gothic", serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+    .kaisei-decol-regular {
+      font-family: "Kaisei Decol", serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+    #bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 1s ease-in-out;
+    }
+    .blur {
+      filter: blur(8px);
+    }
+    #clock {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 2;
+      text-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+    #clock h1 {
+      font-size: 80px;
+      margin: 0;
+    }
+    #clock p {
+      font-size: 40px;
+      margin: 0;
+    }
+    #settingsContainer {
+      position: absolute;
+      top: 10px; right: 10px;
+      z-index: 3;
+    }
+    #settingsToggle {
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #settingsPanel {
+      display: none;
+      margin-top: 5px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      border-radius: 5px;
+      max-width: 300px;
+    }
+    #bgConfigContainer {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .imageConfig {
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 10px;
+    }
+    .imageConfig:last-child {
+      border-bottom: none;
+    }
+    .imageConfig label {
+      display: block;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    .imageConfig input[type="number"] {
+      width: 60px;
+    }
+    .fontConfig, .textSizeConfig, .timeFormatConfig {
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 10px;
+    }
+    .fontConfig label, .textSizeConfig label, .timeFormatConfig label {
+      font-size: 14px;
+    }
+    .fontConfig select, .textSizeConfig input {
+      width: 100%;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="bg"></div>
+  <div id="clock" class="noto-sans-jp-default">
+    <h1 id="time">--:--:--</h1>
+    <p id="date">----/--/--</p>
+  </div>
+  <div id="settingsContainer">
+    <button id="settingsToggle">⚙️</button>
+    <div id="settingsPanel">
+      <div id="bgConfigContainer"></div>
+      <div class="fontConfig">
+        <label for="fontSelect">フォント選択:</label>
+        <select id="fontSelect">
+          <option value="noto-sans-jp-default">Noto Sans JP</option>
+          <option value="noto-serif-jp-default">Noto Serif JP</option>
+          <option value="zen-kaku-gothic-new-regular">Zen Kaku Gothic New</option>
+          <option value="m-plus-rounded-1c-regular">M PLUS Rounded 1c</option>
+          <option value="zen-maru-gothic-regular">Zen Maru Gothic</option>
+          <option value="kaisei-decol-regular">Kaisei Decol</option>
+        </select>
+      </div>
+      <div class="textSizeConfig">
+        <label for="charSizeMultiplier">文字サイズ倍率 (例: 1.0):</label>
+        <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
+      </div>
+      <div class="timeFormatConfig">
+        <label for="displaySeconds">秒まで表示する:</label>
+        <input type="checkbox" id="displaySeconds" checked>
+      </div>
+    </div>
+  </div>
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const displaySeconds = document.getElementById('displaySeconds').checked;
+      if (displaySeconds) {
+        document.getElementById('time').textContent = now.toLocaleTimeString();
+      } else {
+        document.getElementById('time').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      }
+      document.getElementById('date').textContent = now.toLocaleDateString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function updateTextSize(multiplier) {
+      const timeElem = document.getElementById('time');
+      const dateElem = document.getElementById('date');
+      timeElem.style.fontSize = (80 * multiplier) + "px";
+      dateElem.style.fontSize = (40 * multiplier) + "px";
+    }
+    updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value));
+    document.getElementById('charSizeMultiplier').addEventListener('change', function() {
+      updateTextSize(parseFloat(this.value));
+    });
+
+    let backgrounds = [];
+    let currentBg = 0;
+    const defaultInterval = 500000;
+    let slideTimeoutId = null;
+    let bgConfigs = [];
+    const bgDiv = document.getElementById('bg');
+
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsPanel = document.getElementById('settingsPanel');
+    settingsToggle.addEventListener('click', () => {
+      settingsPanel.style.display = (settingsPanel.style.display === 'block') ? 'none' : 'block';
+    });
+
+    const fontSelect = document.getElementById('fontSelect');
+    fontSelect.addEventListener('change', function() {
+      const clockElem = document.getElementById('clock');
+      clockElem.classList.remove(
+        "noto-sans-jp-default",
+        "noto-serif-jp-default",
+        "zen-kaku-gothic-new-regular",
+        "m-plus-rounded-1c-regular",
+        "zen-maru-gothic-regular",
+        "kaisei-decol-regular"
+      );
+      clockElem.classList.add(this.value);
+    });
+
+    fetch('/backgrounds')
+      .then(response => response.json())
+      .then(data => {
+        backgrounds = data;
+        bgConfigs = backgrounds.map(() => ({
+          interval: defaultInterval,
+          blur: false,
+          gradientBlur: true
+        }));
+        buildBgSettingsUI();
+        if (backgrounds.length > 0) {
+          setBackground(backgrounds[currentBg]);
+          scheduleNextSlide();
+        }
+      });
+
+    function buildBgSettingsUI() {
+      const container = document.getElementById('bgConfigContainer');
+      container.innerHTML = '';
+      backgrounds.forEach((img, index) => {
+        const div = document.createElement('div');
+        div.className = 'imageConfig';
+        div.innerHTML = `
+          <strong>Image ${index + 1}</strong>
+          <label>
+            スライド間隔 (秒):
+            <input type="number" min="1" value="${bgConfigs[index].interval / 1000}" data-index="${index}" class="intervalInput">
+          </label>
+          <label>
+            ブラー適用:
+            <input type="checkbox" data-index="${index}" class="blurToggle" ${bgConfigs[index].blur ? 'checked' : ''}>
+          </label>
+          <label>
+            Gradientブラー (文字周辺):
+            <input type="checkbox" data-index="${index}" class="gradientBlurToggle" ${bgConfigs[index].gradientBlur ? 'checked' : ''}>
+          </label>
+        `;
+        container.appendChild(div);
+      });
+      document.querySelectorAll('.intervalInput').forEach(input => {
+        input.addEventListener('change', function() {
+          const idx = parseInt(this.getAttribute('data-index'));
+          bgConfigs[idx].interval = parseInt(this.value) * 1000;
+          if (idx === currentBg) rescheduleSlide();
+        });
+      });
+      document.querySelectorAll('.blurToggle').forEach(input => {
+        input.addEventListener('change', function() {
+          const idx = parseInt(this.getAttribute('data-index'));
+          bgConfigs[idx].blur = this.checked;
+          if (idx === currentBg) setBackground(backgrounds[currentBg]);
+        });
+      });
+      document.querySelectorAll('.gradientBlurToggle').forEach(input => {
+        input.addEventListener('change', function() {
+          const idx = parseInt(this.getAttribute('data-index'));
+          bgConfigs[idx].gradientBlur = this.checked;
+          const clockElem = document.getElementById('clock');
+          if (idx === currentBg) {
+            clockElem.style.textShadow = bgConfigs[idx].gradientBlur ? "0 0 20px rgba(0,0,0,0.8)" : "none";
+          }
+        });
+      });
+    }
+
+    function setBackground(imgPath) {
+      bgDiv.style.backgroundImage = `url('/static/${imgPath}')`;
+      const config = bgConfigs[currentBg];
+      if (config.blur) {
+        bgDiv.classList.add('blur');
+      } else {
+        bgDiv.classList.remove('blur');
+      }
+      const clockElem = document.getElementById('clock');
+      clockElem.style.textShadow = config.gradientBlur ? "0 0 20px rgba(0,0,0,0.8)" : "none";
+    }
+
+    function scheduleNextSlide() {
+      if (slideTimeoutId) clearTimeout(slideTimeoutId);
+      const config = bgConfigs[currentBg];
+      slideTimeoutId = setTimeout(() => nextBackground(), config.interval);
+    }
+
+    function rescheduleSlide() {
+      scheduleNextSlide();
+    }
+
+    function nextBackground() {
+      if (backgrounds.length === 0) return;
+      currentBg = (currentBg + 1) % backgrounds.length;
+      setBackground(backgrounds[currentBg]);
+      scheduleNextSlide();
+    }
+  </script>
+</body>
+</html>
