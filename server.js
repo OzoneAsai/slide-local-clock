@@ -2,25 +2,36 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+function startServer(options = {}) {
+  const app = express();
+  const port = options.port || process.env.PORT || 3000;
+  const appDir = options.appDir || path.join(__dirname, 'public');
+  const staticDir = options.staticDir || path.join(appDir, 'static');
 
-// Serve static files from public
-app.use(express.static(path.join(__dirname, 'public')));
+  // Serve the app files (index.html, scripts, etc.)
+  app.use(express.static(appDir));
+  // Serve images from the chosen static directory
+  app.use('/static', express.static(staticDir));
 
-// Endpoint to list backgrounds
-app.get('/backgrounds', (req, res) => {
-  const bgDir = path.join(__dirname, 'public', 'static');
-  fs.readdir(bgDir, (err, files) => {
-    if (err) {
-      res.status(500).json([]);
-      return;
-    }
-    const images = files.filter(f => /\.(jpg|jpeg|png|gif)$/i.test(f));
-    res.json(images);
+  // Endpoint to list background images
+  app.get('/backgrounds', (req, res) => {
+    fs.readdir(staticDir, (err, files) => {
+      if (err) {
+        res.status(500).json([]);
+        return;
+      }
+      const images = files.filter(f => /\.(jpg|jpeg|png|gif)$/i.test(f));
+      res.json(images);
+    });
   });
-});
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+  return app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}
+
+if (require.main === module) {
+  startServer();
+} else {
+  module.exports = startServer;
+}

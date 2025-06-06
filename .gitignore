@@ -3,3 +3,4 @@ public/static/*.png
 public/static/*.jpg
 public/static/*.jpeg
 public/static/*.gif
+dist/
