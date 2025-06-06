@@ -7,12 +7,28 @@
     "start": "node server.js",
     "electron": "electron .",
     "pack": "electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "build": {
+    "appId": "com.example.slideclock",
+    "productName": "Slide Local Clock",
+    "files": [
+      "public/**/*",
+      "main.js",
+      "server.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "static",
+        "to": "static"
+      }
+    ]
+  },
   "dependencies": {
     "express": "^5.1.0"
   },
