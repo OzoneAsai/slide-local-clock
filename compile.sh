@@ -1,4 +1,4 @@
 #!/bin/sh
-# Build the Electron app for the current platform
+# Build a portable Electron app for Linux/macOS
 npm install
-npx electron-builder
+npx electron-builder --linux AppImage

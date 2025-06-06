@@ -1,9 +1,9 @@
 
 @echo off
 
-rem Build the Electron app for Windows
+rem Build a portable Electron app for Windows
 
 npm install
 
-npx electron-builder --win
+npx electron-builder --win portable
 

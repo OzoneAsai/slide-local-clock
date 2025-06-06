@@ -31,16 +31,16 @@ npm run electron
 
 ### Building a single executable
 
-Use the provided helper scripts to build for your platform:
+Use the provided helper scripts to build a portable executable:
 
 ```
-./compile.sh     # Linux/macOS
+./compile.sh     # Linux/macOS (produces an AppImage)
 ```
 
 On Windows run:
 
 ```
-compile.bat
+compile.bat      # Windows (produces a portable .exe)
 ```
 
 After building, copy your images into the `static` folder beside the generated
