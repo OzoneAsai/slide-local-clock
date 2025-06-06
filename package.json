@@ -1,7 +1,7 @@
 {
   "name": "slide-local-clock",
   "version": "1.0.0",
-  "description": "",
+  "description": "Clock slideshow with Electron and Express",
   "main": "main.js",
   "scripts": {
     "start": "node server.js",
