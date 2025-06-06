@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const os = require('os');
 const startServer = require('./server');
@@ -26,6 +26,14 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+ipcMain.handle('open-images-folder', async () => {
+  const dir = path.join(os.homedir(), 'clocl_wallpapers');
+  const err = await shell.openPath(dir);
+  if (err) {
+    console.error('Failed to open folder:', err);
+  }
+});
 
 app.whenReady().then(createWindow);
 

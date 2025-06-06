@@ -261,7 +261,10 @@
 
     document.getElementById('openFolderBtn').addEventListener('click', () => {
       if (window.electronAPI && window.electronAPI.openImagesFolder) {
-        window.electronAPI.openImagesFolder();
+        window.electronAPI.openImagesFolder().catch(err => {
+          console.error(err);
+          alert('Failed to open folder.');
+        });
       } else {
         alert('Opening the folder requires the Electron build.');
       }
