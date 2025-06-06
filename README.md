@@ -1,6 +1,8 @@
 # Local Clock Slideshow
 
-This project shows a clock with a photo slideshow in the browser. The `index.html` uses JavaScript to rotate through images from the `public/static` directory.
+This project shows a clock with a photo slideshow in the browser. The
+`index.html` loads images from `~/clocl_wallpapers` so you can easily update the
+slideshow contents.
 
 ## Running (development)
 
@@ -14,14 +16,19 @@ This project shows a clock with a photo slideshow in the browser. The `index.htm
    ```
    The page will be available at <http://localhost:3000>.
 
-Place any background images (jpg, png, gif) inside `public/static` and they will be included in the slideshow.
+During development the app serves images from the folder `~/clocl_wallpapers`.
+If the directory does not exist it will be created automatically. Place any
+background images (jpg, png or gif) there and they will be shown in the
+slideshow. A button in the settings overlay opens this folder in your file
+manager.
 
 ## Running with Electron
 
 You can package this project as a standalone application that includes a
-browser using Electron. When packaged, images are loaded from a `static`
-directory located next to the executable so you can change them without
-rebuilding.
+browser using Electron. The packaged app also reads images from the
+`~/clocl_wallpapers` directory so you can update backgrounds without
+rebuilding. Use the "Open Image Folder" button from the settings overlay to
+quickly open that directory.
 
 ### Development preview
 
@@ -45,5 +52,5 @@ compile.bat      # Windows (produces a portable .exe)
 `compile.bat` sets the environment variable `CSC_IDENTITY_AUTO_DISCOVERY=false`
 so Electron Builder won't attempt code signing automatically.
 
-After building, copy your images into the `static` folder beside the generated
-executable.
+After building, put your images into the `~/clocl_wallpapers` directory to
+change the slideshow without rebuilding.

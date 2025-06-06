@@ -1,12 +1,18 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 function startServer(options = {}) {
   const app = express();
   const port = options.port || process.env.PORT || 3000;
   const appDir = options.appDir || path.join(__dirname, 'public');
-  const staticDir = options.staticDir || path.join(appDir, 'static');
+  const staticDir =
+    options.staticDir || path.join(os.homedir(), 'clocl_wallpapers');
+
+  if (!fs.existsSync(staticDir)) {
+    fs.mkdirSync(staticDir, { recursive: true });
+  }
 
   // Serve the app files (index.html, scripts, etc.)
   app.use(express.static(appDir));

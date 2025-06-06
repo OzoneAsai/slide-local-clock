@@ -74,12 +74,11 @@
       font-size: 40px;
       margin: 0;
     }
-    #settingsContainer {
-      position: absolute;
-      top: 10px; right: 10px;
-      z-index: 3;
-    }
     #settingsToggle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 3;
       background: rgba(0, 0, 0, 0.6);
       border: none;
       color: white;
@@ -88,18 +87,43 @@
       cursor: pointer;
       font-size: 16px;
     }
-    #settingsPanel {
+
+    #settingsOverlay,
+    #imageConfigOverlay {
       display: none;
-      margin-top: 5px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px;
-      border-radius: 5px;
-      max-width: 300px;
-    }
-    #bgConfigContainer {
-      max-height: 300px;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 320px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      z-index: 4;
       overflow-y: auto;
+      padding: 10px;
+    }
+    #settingsOverlayHeader,
+    #imageConfigOverlayHeader {
+      font-size: 20px;
       margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #imageConfigOverlayClose {
+      cursor: pointer;
+    }
+    .sectionTitle {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    #imageConfigOverlayContent .imageConfig {
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+    #imageConfigOverlayContent .imageConfig.active {
+      background: rgba(255,255,255,0.1);
     }
     .imageConfig {
       margin-bottom: 10px;
@@ -137,30 +161,48 @@
     <h1 id="time">--:--:--</h1>
     <p id="date">----/--/--</p>
   </div>
-  <div id="settingsContainer">
-    <button id="settingsToggle">⚙️</button>
-    <div id="settingsPanel">
-      <div id="bgConfigContainer"></div>
-      <div class="fontConfig">
-        <label for="fontSelect">フォント選択:</label>
-        <select id="fontSelect">
-          <option value="noto-sans-jp-default">Noto Sans JP</option>
-          <option value="noto-serif-jp-default">Noto Serif JP</option>
-          <option value="zen-kaku-gothic-new-regular">Zen Kaku Gothic New</option>
-          <option value="m-plus-rounded-1c-regular">M PLUS Rounded 1c</option>
-          <option value="zen-maru-gothic-regular">Zen Maru Gothic</option>
-          <option value="kaisei-decol-regular">Kaisei Decol</option>
-        </select>
+  <button id="settingsToggle">⚙️</button>
+
+  <div id="settingsOverlay">
+    <div id="settingsOverlayHeader">Settings</div>
+    <div id="settingsOverlayContent">
+      <div class="sectionTitle">Font</div>
+      <label for="fontSelect">フォント選択:</label>
+      <select id="fontSelect">
+        <option value="noto-sans-jp-default">Noto Sans JP</option>
+        <option value="noto-serif-jp-default">Noto Serif JP</option>
+        <option value="zen-kaku-gothic-new-regular">Zen Kaku Gothic New</option>
+        <option value="m-plus-rounded-1c-regular">M PLUS Rounded 1c</option>
+        <option value="zen-maru-gothic-regular">Zen Maru Gothic</option>
+        <option value="kaisei-decol-regular">Kaisei Decol</option>
+      </select>
+
+      <div class="sectionTitle">Text Size</div>
+      <label for="charSizeMultiplier">文字サイズ倍率 (例: 1.0):</label>
+      <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
+
+      <div class="sectionTitle">Time Format</div>
+      <label for="displaySeconds">秒まで表示する:</label>
+      <input type="checkbox" id="displaySeconds" checked>
+
+      <div class="sectionTitle">Controls</div>
+      <div class="controlButtons">
+        <button id="prevBtn">Prev</button>
+        <button id="fullscreenBtn">Full</button>
+        <button id="nextBtn">Next</button>
       </div>
-      <div class="textSizeConfig">
-        <label for="charSizeMultiplier">文字サイズ倍率 (例: 1.0):</label>
-        <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
-      </div>
-      <div class="timeFormatConfig">
-        <label for="displaySeconds">秒まで表示する:</label>
-        <input type="checkbox" id="displaySeconds" checked>
-      </div>
+
+      <div class="sectionTitle">Background Images</div>
+      <button id="openImageConfigBtn">画像設定</button>
+      <button id="openFolderBtn">フォルダーを開く</button>
     </div>
+  </div>
+
+  <div id="imageConfigOverlay">
+    <div id="imageConfigOverlayHeader">
+      Image Settings <span id="imageConfigOverlayClose">✖</span>
+    </div>
+    <div id="imageConfigOverlayContent"></div>
   </div>
   <script>
     function updateClock() {
@@ -169,7 +211,7 @@
       if (displaySeconds) {
         document.getElementById('time').textContent = now.toLocaleTimeString();
       } else {
-        document.getElementById('time').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        document.getElementById('time').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
       document.getElementById('date').textContent = now.toLocaleDateString();
     }
@@ -179,104 +221,127 @@
     function updateTextSize(multiplier) {
       const timeElem = document.getElementById('time');
       const dateElem = document.getElementById('date');
-      timeElem.style.fontSize = (80 * multiplier) + "px";
-      dateElem.style.fontSize = (40 * multiplier) + "px";
+      timeElem.style.fontSize = (80 * multiplier) + 'px';
+      dateElem.style.fontSize = (40 * multiplier) + 'px';
     }
     updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value));
-    document.getElementById('charSizeMultiplier').addEventListener('change', function() {
-      updateTextSize(parseFloat(this.value));
+    document.getElementById('charSizeMultiplier').addEventListener('change', e => {
+      updateTextSize(parseFloat(e.target.value));
     });
 
     let backgrounds = [];
     let currentBg = 0;
-    const defaultInterval = 500000;
     let slideTimeoutId = null;
+    const defaultInterval = 500000;
     let bgConfigs = [];
     const bgDiv = document.getElementById('bg');
 
     const settingsToggle = document.getElementById('settingsToggle');
-    const settingsPanel = document.getElementById('settingsPanel');
+    const settingsOverlay = document.getElementById('settingsOverlay');
     settingsToggle.addEventListener('click', () => {
-      settingsPanel.style.display = (settingsPanel.style.display === 'block') ? 'none' : 'block';
+      settingsOverlay.style.display = settingsOverlay.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.getElementById('openFolderBtn').addEventListener('click', () => {
+      if (window.electronAPI) window.electronAPI.openImagesFolder();
+    });
+
+    const imageConfigOverlay = document.getElementById('imageConfigOverlay');
+    const imageConfigOverlayClose = document.getElementById('imageConfigOverlayClose');
+    document.getElementById('openImageConfigBtn').addEventListener('click', () => {
+      buildImageConfigOverlay();
+      imageConfigOverlay.style.display = 'block';
+    });
+    imageConfigOverlayClose.addEventListener('click', () => {
+      imageConfigOverlay.style.display = 'none';
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', prevBackground);
+    document.getElementById('nextBtn').addEventListener('click', nextBackground);
+    document.getElementById('fullscreenBtn').addEventListener('click', () => {
+      document.documentElement.requestFullscreen();
     });
 
     const fontSelect = document.getElementById('fontSelect');
     fontSelect.addEventListener('change', function() {
       const clockElem = document.getElementById('clock');
-      clockElem.classList.remove(
-        "noto-sans-jp-default",
-        "noto-serif-jp-default",
-        "zen-kaku-gothic-new-regular",
-        "m-plus-rounded-1c-regular",
-        "zen-maru-gothic-regular",
-        "kaisei-decol-regular"
-      );
+      clockElem.className = '';
       clockElem.classList.add(this.value);
     });
 
     fetch('/backgrounds')
-      .then(response => response.json())
+      .then(r => r.json())
       .then(data => {
         backgrounds = data;
-        bgConfigs = backgrounds.map(() => ({
-          interval: defaultInterval,
-          blur: false,
-          gradientBlur: true
-        }));
-        buildBgSettingsUI();
-        if (backgrounds.length > 0) {
+        bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        if (backgrounds.length) {
           setBackground(backgrounds[currentBg]);
           scheduleNextSlide();
         }
       });
 
-    function buildBgSettingsUI() {
-      const container = document.getElementById('bgConfigContainer');
+    function buildImageConfigOverlay() {
+      const container = document.getElementById('imageConfigOverlayContent');
       container.innerHTML = '';
-      backgrounds.forEach((img, index) => {
-        const div = document.createElement('div');
-        div.className = 'imageConfig';
-        div.innerHTML = `
-          <strong>Image ${index + 1}</strong>
-          <label>
-            スライド間隔 (秒):
-            <input type="number" min="1" value="${bgConfigs[index].interval / 1000}" data-index="${index}" class="intervalInput">
+      backgrounds.forEach((imgUrl, i) => {
+        const block = document.createElement('div');
+        block.className = 'imageConfig';
+        if (i === currentBg) block.classList.add('active');
+        block.innerHTML = `
+          <strong>Image ${i + 1}</strong>
+          <label>スライド間隔 (秒):
+            <input type="number" min="1" value="${bgConfigs[i].interval / 1000}" data-idx="${i}" class="intervalInput">
           </label>
-          <label>
-            ブラー適用:
-            <input type="checkbox" data-index="${index}" class="blurToggle" ${bgConfigs[index].blur ? 'checked' : ''}>
+          <label>ブラー適用:
+            <input type="checkbox" data-idx="${i}" class="blurToggle" ${bgConfigs[i].blur ? 'checked' : ''}>
           </label>
-          <label>
-            Gradientブラー (文字周辺):
-            <input type="checkbox" data-index="${index}" class="gradientBlurToggle" ${bgConfigs[index].gradientBlur ? 'checked' : ''}>
+          <label>Gradientブラー (文字周辺):
+            <input type="checkbox" data-idx="${i}" class="gradientBlurToggle" ${bgConfigs[i].gradientBlur ? 'checked' : ''}>
           </label>
+          <div style="margin-top: 8px;">
+            <button class="previewBtn" data-idx="${i}">プレビュー</button>
+          </div>
         `;
-        container.appendChild(div);
+        container.appendChild(block);
       });
-      document.querySelectorAll('.intervalInput').forEach(input => {
-        input.addEventListener('change', function() {
-          const idx = parseInt(this.getAttribute('data-index'));
-          bgConfigs[idx].interval = parseInt(this.value) * 1000;
+
+      container.querySelectorAll('.intervalInput').forEach(el => {
+        el.addEventListener('change', e => {
+          const idx = parseInt(e.target.dataset.idx);
+          bgConfigs[idx].interval = parseInt(e.target.value) * 1000;
           if (idx === currentBg) rescheduleSlide();
         });
       });
-      document.querySelectorAll('.blurToggle').forEach(input => {
-        input.addEventListener('change', function() {
-          const idx = parseInt(this.getAttribute('data-index'));
-          bgConfigs[idx].blur = this.checked;
+      container.querySelectorAll('.blurToggle').forEach(el => {
+        el.addEventListener('change', e => {
+          const idx = parseInt(e.target.dataset.idx);
+          bgConfigs[idx].blur = e.target.checked;
           if (idx === currentBg) setBackground(backgrounds[currentBg]);
         });
       });
-      document.querySelectorAll('.gradientBlurToggle').forEach(input => {
-        input.addEventListener('change', function() {
-          const idx = parseInt(this.getAttribute('data-index'));
-          bgConfigs[idx].gradientBlur = this.checked;
-          const clockElem = document.getElementById('clock');
+      container.querySelectorAll('.gradientBlurToggle').forEach(el => {
+        el.addEventListener('change', e => {
+          const idx = parseInt(e.target.dataset.idx);
+          bgConfigs[idx].gradientBlur = e.target.checked;
           if (idx === currentBg) {
-            clockElem.style.textShadow = bgConfigs[idx].gradientBlur ? "0 0 20px rgba(0,0,0,0.8)" : "none";
+            const clockElem = document.getElementById('clock');
+            clockElem.style.textShadow = bgConfigs[idx].gradientBlur ? '0 0 20px rgba(0,0,0,0.8)' : 'none';
           }
         });
       });
+      container.querySelectorAll('.previewBtn').forEach(el => {
+        el.addEventListener('click', e => {
+          const idx = parseInt(e.target.dataset.idx);
+          openImagePreview(idx);
+        });
+      });
+    }
+
+    function openImagePreview(idx) {
+      currentBg = idx;
+      setBackground(backgrounds[currentBg]);
+      rescheduleSlide();
+      buildImageConfigOverlay();
     }
 
     function setBackground(imgPath) {
@@ -288,13 +353,13 @@
         bgDiv.classList.remove('blur');
       }
       const clockElem = document.getElementById('clock');
-      clockElem.style.textShadow = config.gradientBlur ? "0 0 20px rgba(0,0,0,0.8)" : "none";
+      clockElem.style.textShadow = config.gradientBlur ? '0 0 20px rgba(0,0,0,0.8)' : 'none';
     }
 
     function scheduleNextSlide() {
       if (slideTimeoutId) clearTimeout(slideTimeoutId);
       const config = bgConfigs[currentBg];
-      slideTimeoutId = setTimeout(() => nextBackground(), config.interval);
+      slideTimeoutId = setTimeout(nextBackground, config.interval);
     }
 
     function rescheduleSlide() {
@@ -302,8 +367,15 @@
     }
 
     function nextBackground() {
-      if (backgrounds.length === 0) return;
+      if (!backgrounds.length) return;
       currentBg = (currentBg + 1) % backgrounds.length;
+      setBackground(backgrounds[currentBg]);
+      scheduleNextSlide();
+    }
+
+    function prevBackground() {
+      if (!backgrounds.length) return;
+      currentBg = (currentBg - 1 + backgrounds.length) % backgrounds.length;
       setBackground(backgrounds[currentBg]);
       scheduleNextSlide();
     }
