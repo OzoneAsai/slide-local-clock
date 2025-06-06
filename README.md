@@ -22,7 +22,8 @@ During development the app serves images from the folder `~/clocl_wallpapers`.
 If the directory does not exist it will be created automatically. Place any
 background images (jpg, png or gif) there and they will be shown in the
 slideshow. A button in the settings overlay opens this folder in your file
-manager.
+manager when running the Electron build. In a regular browser the button shows
+an alert since the folder cannot be opened automatically.
 
 ## Running with Electron
 

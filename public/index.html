@@ -102,6 +102,7 @@
       overflow-y: auto;
       padding: 10px;
     }
+    #settingsOverlay.open { display: block; }
     #settingsOverlayHeader,
     #imageConfigOverlayHeader {
       font-size: 20px;
@@ -239,11 +240,15 @@
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsOverlay = document.getElementById('settingsOverlay');
     settingsToggle.addEventListener('click', () => {
-      settingsOverlay.style.display = settingsOverlay.style.display === 'block' ? 'none' : 'block';
+      settingsOverlay.classList.toggle('open');
     });
 
     document.getElementById('openFolderBtn').addEventListener('click', () => {
-      if (window.electronAPI) window.electronAPI.openImagesFolder();
+      if (window.electronAPI && window.electronAPI.openImagesFolder) {
+        window.electronAPI.openImagesFolder();
+      } else {
+        alert('Opening the folder requires the Electron build.');
+      }
     });
 
     const imageConfigOverlay = document.getElementById('imageConfigOverlay');
