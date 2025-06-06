@@ -64,3 +64,11 @@ After building, put your images into the `~/clocl_wallpapers` directory to
 change the slideshow without rebuilding.
 Your saved settings will be read from the same data directory used in
 development, so preferences carry over to the packaged app.
+
+### Dependency notes
+
+The build uses recent versions of Electron and electron-builder. Some
+transitive packages were deprecated, so `package.json` overrides replace
+`@npmcli/move-file` with `@npmcli/fs`. The lockfile was regenerated with
+electron-builder 26.0.16 to minimize deprecation warnings when running the
+compile scripts.
