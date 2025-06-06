@@ -42,6 +42,8 @@ On Windows run:
 ```
 compile.bat      # Windows (produces a portable .exe)
 ```
+`compile.bat` sets the environment variable `CSC_IDENTITY_AUTO_DISCOVERY=false`
+so Electron Builder won't attempt code signing automatically.
 
 After building, copy your images into the `static` folder beside the generated
 executable.
