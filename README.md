@@ -25,6 +25,11 @@ slideshow. A button in the settings overlay opens this folder in your file
 manager when running the Electron build. In a regular browser the button shows
 an alert since the folder cannot be opened automatically.
 
+User preferences such as font choice or slideshow timing are saved to a
+`settings.json` file inside your system data directory (`%APPDATA%` on Windows
+or `$XDG_DATA_HOME` on Linux/macOS). This allows the app to remember your
+settings between runs.
+
 ## Running with Electron
 
 You can package this project as a standalone application that includes a
@@ -57,3 +62,5 @@ so Electron Builder won't attempt code signing automatically.
 
 After building, put your images into the `~/clocl_wallpapers` directory to
 change the slideshow without rebuilding.
+Your saved settings will be read from the same data directory used in
+development, so preferences carry over to the packaged app.

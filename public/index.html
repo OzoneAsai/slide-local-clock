@@ -244,7 +244,9 @@
     updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value));
     document.getElementById('charSizeMultiplier').addEventListener('change', e => {
       updateTextSize(parseFloat(e.target.value));
+      saveSettings();
     });
+    document.getElementById('displaySeconds').addEventListener('change', saveSettings);
 
     let backgrounds = [];
     let currentBg = 0;
@@ -291,6 +293,7 @@
       const clockElem = document.getElementById('clock');
       clockElem.className = '';
       clockElem.classList.add(this.value);
+      saveSettings();
     });
 
     fetch('/backgrounds')
@@ -298,6 +301,27 @@
       .then(data => {
         backgrounds = data;
         bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        return fetch('/settings');
+      })
+      .then(r => r.ok ? r.json() : null)
+      .then(conf => {
+        if (conf) {
+          if (conf.font) {
+            fontSelect.value = conf.font;
+            fontSelect.dispatchEvent(new Event('change'));
+          }
+          if (typeof conf.charSizeMultiplier === 'number') {
+            document.getElementById('charSizeMultiplier').value = conf.charSizeMultiplier;
+            updateTextSize(conf.charSizeMultiplier);
+          }
+          if (typeof conf.displaySeconds === 'boolean') {
+            document.getElementById('displaySeconds').checked = conf.displaySeconds;
+          }
+          if (conf.bgConfigs && conf.bgConfigs.length === backgrounds.length) {
+            bgConfigs = conf.bgConfigs;
+          }
+        }
+        buildImageConfigOverlay();
         if (backgrounds.length) {
           setBackground(backgrounds[currentBg]);
           scheduleNextSlide();
@@ -334,6 +358,7 @@
           const idx = parseInt(e.target.dataset.idx);
           bgConfigs[idx].interval = parseInt(e.target.value) * 1000;
           if (idx === currentBg) rescheduleSlide();
+          saveSettings();
         });
       });
       container.querySelectorAll('.blurToggle').forEach(el => {
@@ -341,6 +366,7 @@
           const idx = parseInt(e.target.dataset.idx);
           bgConfigs[idx].blur = e.target.checked;
           if (idx === currentBg) setBackground(backgrounds[currentBg]);
+          saveSettings();
         });
       });
       container.querySelectorAll('.gradientBlurToggle').forEach(el => {
@@ -351,6 +377,7 @@
             const clockElem = document.getElementById('clock');
             clockElem.style.textShadow = bgConfigs[idx].gradientBlur ? '0 0 20px rgba(0,0,0,0.8)' : 'none';
           }
+          saveSettings();
         });
       });
       container.querySelectorAll('.previewBtn').forEach(el => {
@@ -402,6 +429,23 @@
       currentBg = (currentBg - 1 + backgrounds.length) % backgrounds.length;
       setBackground(backgrounds[currentBg]);
       scheduleNextSlide();
+    }
+
+    function collectSettings() {
+      return {
+        font: fontSelect.value,
+        charSizeMultiplier: parseFloat(document.getElementById('charSizeMultiplier').value),
+        displaySeconds: document.getElementById('displaySeconds').checked,
+        bgConfigs,
+      };
+    }
+
+    function saveSettings() {
+      fetch('/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collectSettings()),
+      });
     }
   </script>
 </body>
