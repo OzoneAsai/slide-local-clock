@@ -67,6 +67,10 @@ change the slideshow without rebuilding.
 Your saved settings will be read from the same data directory used in
 development, so preferences carry over to the packaged app.
 
+The build scripts also fetch the **Kaisei Decol** font automatically. This
+font is bundled into `public/fonts` so the app can display text offline even if
+Google Fonts is unreachable.
+
 ### Dependency notes
 
 The build uses recent versions of Electron and electron-builder. Some
