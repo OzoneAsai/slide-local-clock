@@ -31,9 +31,10 @@ User preferences such as font choice, slideshow timing and the clock display
 format are saved to a `settings.json` file inside your system data directory
 (`%APPDATA%` on Windows or `$XDG_DATA_HOME` on Linux/macOS). The first line of
 the clock can use a custom format string like `HH:mm:ss`. The second line's date
-language and format can be chosen from the settings overlay. Four date formats
-are available: long, long with weekday, numeric, and numeric with weekday.
-These settings let the app remember your preferences between runs.
+language and format can be chosen from the settings overlay. Date format options
+adjust to the UI language and show examples such as `6月8日(日)` when Japanese is
+selected. The numeric style is the default. These settings let the app remember
+your preferences between runs.
 
 ## Running with Electron
 

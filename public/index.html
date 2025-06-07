@@ -244,12 +244,7 @@
 
       <div class="sectionTitle" data-i18n="dateFormatSection">Date Format</div>
       <label for="dateFormatSelect" data-i18n="dateFormatLabel">Format:</label>
-      <select id="dateFormatSelect">
-        <option value="long" data-i18n="formatLong">Long</option>
-        <option value="longWeekday" data-i18n="formatLongWeekday">Long + Weekday</option>
-        <option value="numeric" data-i18n="formatNumeric">Numeric</option>
-        <option value="numericWeekday" data-i18n="formatNumericWeekday">Numeric + Weekday</option>
-      </select>
+      <select id="dateFormatSelect"></select>
 
       <div class="sectionTitle" data-i18n="controlsSection">Controls</div>
       <div class="controlButtons">
@@ -363,34 +358,6 @@
         'en-US': 'Format:',
         'ja-JP': '形式:',
         'ko-KR': '형식:'
-      },
-      formatLong: {
-        'zh-CN': '长',
-        'zh-TW': '長',
-        'en-US': 'Long',
-        'ja-JP': 'ロング',
-        'ko-KR': '롱'
-      },
-      formatLongWeekday: {
-        'zh-CN': '长+星期',
-        'zh-TW': '長+星期',
-        'en-US': 'Long + Weekday',
-        'ja-JP': 'ロング+曜日',
-        'ko-KR': '롱+요일'
-      },
-      formatNumeric: {
-        'zh-CN': '数字',
-        'zh-TW': '數字',
-        'en-US': 'Numeric',
-        'ja-JP': '数字',
-        'ko-KR': '숫자'
-      },
-      formatNumericWeekday: {
-        'zh-CN': '数字+星期',
-        'zh-TW': '數字+星期',
-        'en-US': 'Numeric + Weekday',
-        'ja-JP': '数字+曜日',
-        'ko-KR': '숫자+요일'
       },
       controlsSection: {
         'zh-CN': '控制',
@@ -527,6 +494,11 @@
     }
 
     function formatDate(date, lang, style) {
+      if (style === 'monthDayShortWeekday' || style === 'monthDayLongWeekday') {
+        const base = new Intl.DateTimeFormat(lang, { month: 'numeric', day: 'numeric' }).format(date);
+        const wd = new Intl.DateTimeFormat(lang, { weekday: style === 'monthDayShortWeekday' ? 'short' : 'long' }).format(date);
+        return style === 'monthDayShortWeekday' ? `${base}(${wd})` : `${base}${wd}`;
+      }
       const baseOptions = style.startsWith('numeric') ?
         { year: 'numeric', month: 'numeric', day: 'numeric' } :
         { year: 'numeric', month: 'long', day: 'numeric' };
@@ -543,6 +515,31 @@
              (translations[key] && translations[key]['en-US']) || key;
     }
 
+    const dateStyleCodes = [
+      'numeric',
+      'numericWeekday',
+      'monthDayShortWeekday',
+      'monthDayLongWeekday',
+      'long',
+      'longWeekday'
+    ];
+
+    function buildDateFormatOptions() {
+      const select = document.getElementById('dateFormatSelect');
+      const prev = select.value;
+      select.innerHTML = '';
+      const sample = new Date(2025, 5, 8);
+      dateStyleCodes.forEach(code => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = formatDate(sample, currentLang, code);
+        select.appendChild(opt);
+      });
+      if (prev) select.value = prev;
+    }
+
+    buildDateFormatOptions();
+
     function applyTranslations() {
       document.documentElement.lang = currentLang;
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -551,6 +548,7 @@
           el.textContent = t(key);
         }
       });
+      buildDateFormatOptions();
       const overlay = document.getElementById('imageConfigOverlay');
       if (overlay && overlay.style.display === 'block') {
         buildImageConfigOverlay();
