@@ -30,10 +30,10 @@ an alert since the folder cannot be opened automatically.
 User preferences such as font choice, slideshow timing and the clock display
 format are saved to a `settings.json` file inside your system data directory
 (`%APPDATA%` on Windows or `$XDG_DATA_HOME` on Linux/macOS). The first line of
-the clock can use a custom format string like `HH:mm:ss` while the second line's
-date language can be selected from Simplified Chinese, Traditional Chinese,
-Korean, US English or Japanese. These settings let the app remember your
-preferences between runs.
+the clock can use a custom format string like `HH:mm:ss`. The second line's date
+language and format can be chosen from the settings overlay. Four date formats
+are available: long, long with weekday, numeric, and numeric with weekday.
+These settings let the app remember your preferences between runs.
 
 ## Running with Electron
 

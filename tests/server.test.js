@@ -33,14 +33,15 @@ test('GET /backgrounds returns image list', async () => {
 test('settings roundtrip', async () => {
   const initial = await request(server).get('/settings');
   expect(initial.status).toBe(200);
-  const newSettings = { ...initial.body, displaySeconds: !initial.body.displaySeconds };
+  const newSettings = { ...initial.body };
   newSettings.timeFormat = 'H:m:s';
   newSettings.dateLang = 'ja-JP';
+  newSettings.dateFormat = 'numericWeekday';
   const save = await request(server).post('/settings').send(newSettings);
   expect(save.status).toBe(200);
   expect(save.body).toEqual({ ok: true });
   const after = await request(server).get('/settings');
-  expect(after.body.displaySeconds).toBe(newSettings.displaySeconds);
   expect(after.body.timeFormat).toBe(newSettings.timeFormat);
   expect(after.body.dateLang).toBe(newSettings.dateLang);
+  expect(after.body.dateFormat).toBe(newSettings.dateFormat);
 });

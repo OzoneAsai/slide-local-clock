@@ -231,8 +231,6 @@
       <div class="sectionTitle" data-i18n="timeFormatSection">Time Format</div>
       <label for="timeFormat" data-i18n="timeFormatLabel">Format:</label>
       <input type="text" id="timeFormat" value="HH:mm:ss">
-      <label for="displaySeconds" data-i18n="displaySecondsLabel">秒まで表示する:</label>
-      <input type="checkbox" id="displaySeconds" checked>
 
       <div class="sectionTitle" data-i18n="dateLangSection">Date Line</div>
       <label for="dateLangSelect" data-i18n="dateLangLabel">Language:</label>
@@ -242,6 +240,15 @@
         <option value="en-US">English</option>
         <option value="ja-JP">日本語</option>
         <option value="ko-KR">한국어</option>
+      </select>
+
+      <div class="sectionTitle" data-i18n="dateFormatSection">Date Format</div>
+      <label for="dateFormatSelect" data-i18n="dateFormatLabel">Format:</label>
+      <select id="dateFormatSelect">
+        <option value="long" data-i18n="formatLong">Long</option>
+        <option value="longWeekday" data-i18n="formatLongWeekday">Long + Weekday</option>
+        <option value="numeric" data-i18n="formatNumeric">Numeric</option>
+        <option value="numericWeekday" data-i18n="formatNumericWeekday">Numeric + Weekday</option>
       </select>
 
       <div class="sectionTitle" data-i18n="controlsSection">Controls</div>
@@ -322,13 +329,6 @@
         'ja-JP': '時刻表示形式',
         'ko-KR': '시간 형식'
       },
-      displaySecondsLabel: {
-        'zh-CN': '显示秒数:',
-        'zh-TW': '顯示秒數:',
-        'en-US': 'Show seconds:',
-        'ja-JP': '秒まで表示する:',
-        'ko-KR': '초까지 표시:'
-      },
       timeFormatLabel: {
         'zh-CN': '格式:',
         'zh-TW': '格式:',
@@ -349,6 +349,48 @@
         'en-US': 'Language:',
         'ja-JP': '言語:',
         'ko-KR': '언어:'
+      },
+      dateFormatSection: {
+        'zh-CN': '日期格式',
+        'zh-TW': '日期格式',
+        'en-US': 'Date Format',
+        'ja-JP': '日付形式',
+        'ko-KR': '날짜 형식'
+      },
+      dateFormatLabel: {
+        'zh-CN': '格式:',
+        'zh-TW': '格式:',
+        'en-US': 'Format:',
+        'ja-JP': '形式:',
+        'ko-KR': '형식:'
+      },
+      formatLong: {
+        'zh-CN': '长',
+        'zh-TW': '長',
+        'en-US': 'Long',
+        'ja-JP': 'ロング',
+        'ko-KR': '롱'
+      },
+      formatLongWeekday: {
+        'zh-CN': '长+星期',
+        'zh-TW': '長+星期',
+        'en-US': 'Long + Weekday',
+        'ja-JP': 'ロング+曜日',
+        'ko-KR': '롱+요일'
+      },
+      formatNumeric: {
+        'zh-CN': '数字',
+        'zh-TW': '數字',
+        'en-US': 'Numeric',
+        'ja-JP': '数字',
+        'ko-KR': '숫자'
+      },
+      formatNumericWeekday: {
+        'zh-CN': '数字+星期',
+        'zh-TW': '數字+星期',
+        'en-US': 'Numeric + Weekday',
+        'ja-JP': '数字+曜日',
+        'ko-KR': '숫자+요일'
       },
       controlsSection: {
         'zh-CN': '控制',
@@ -466,6 +508,7 @@
     let currentLang = detectDefaultLang();
     let currentDateLang = currentLang;
     let currentTimeFormat = 'HH:mm:ss';
+    let currentDateFormat = 'long';
 
     function formatTime(date, fmt) {
       const pad = (n) => n.toString().padStart(2, '0');
@@ -481,6 +524,18 @@
         .replace(/ss/g, pad(date.getSeconds()))
         .replace(/s/g, date.getSeconds())
         .replace(/A/g, h24 < 12 ? 'AM' : 'PM');
+    }
+
+    function formatDate(date, lang, style) {
+      const baseOptions = style.startsWith('numeric') ?
+        { year: 'numeric', month: 'numeric', day: 'numeric' } :
+        { year: 'numeric', month: 'long', day: 'numeric' };
+      let str = new Intl.DateTimeFormat(lang, baseOptions).format(date);
+      if (style.endsWith('Weekday')) {
+        const wd = new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(date);
+        str += ` (${wd})`;
+      }
+      return str;
     }
 
     function t(key) {
@@ -506,8 +561,9 @@
     function updateClock() {
       const now = new Date();
       const fmt = document.getElementById('timeFormat').value || currentTimeFormat;
+      const dfmt = document.getElementById('dateFormatSelect').value || currentDateFormat;
       document.getElementById('time').textContent = formatTime(now, fmt);
-      document.getElementById('date').textContent = now.toLocaleDateString(currentDateLang);
+      document.getElementById('date').textContent = formatDate(now, currentDateLang, dfmt);
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -523,7 +579,6 @@
       updateTextSize(parseFloat(e.target.value));
       saveSettings();
     });
-    document.getElementById('displaySeconds').addEventListener('change', saveSettings);
 
     let backgrounds = [];
     let currentBg = 0;
@@ -594,6 +649,13 @@
       saveSettings();
     });
 
+    const dateFormatSelect = document.getElementById('dateFormatSelect');
+    dateFormatSelect.addEventListener('change', function() {
+      currentDateFormat = this.value;
+      updateClock();
+      saveSettings();
+    });
+
     fetch('/backgrounds')
       .then(r => r.json())
       .then(data => {
@@ -612,9 +674,6 @@
             document.getElementById('charSizeMultiplier').value = conf.charSizeMultiplier;
             updateTextSize(conf.charSizeMultiplier);
           }
-          if (typeof conf.displaySeconds === 'boolean') {
-            document.getElementById('displaySeconds').checked = conf.displaySeconds;
-          }
           if (conf.timeFormat) {
             currentTimeFormat = conf.timeFormat;
             document.getElementById('timeFormat').value = conf.timeFormat;
@@ -622,6 +681,10 @@
           if (conf.dateLang) {
             currentDateLang = conf.dateLang;
             document.getElementById('dateLangSelect').value = conf.dateLang;
+          }
+          if (conf.dateFormat) {
+            currentDateFormat = conf.dateFormat;
+            document.getElementById('dateFormatSelect').value = conf.dateFormat;
           }
           if (conf.lang) {
             currentLang = conf.lang;
@@ -748,9 +811,9 @@
       return {
         font: fontSelect.value,
         charSizeMultiplier: parseFloat(document.getElementById('charSizeMultiplier').value),
-        displaySeconds: document.getElementById('displaySeconds').checked,
         timeFormat: document.getElementById('timeFormat').value,
         dateLang: currentDateLang,
+        dateFormat: document.getElementById('dateFormatSelect').value,
         lang: currentLang,
         bgConfigs,
       };
