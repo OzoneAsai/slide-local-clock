@@ -36,6 +36,8 @@ function startServer(options = {}) {
     font: 'noto-sans-jp-default',
     charSizeMultiplier: 1.0,
     displaySeconds: true,
+    timeFormat: 'HH:mm:ss',
+    dateLang: defaultLocale,
     lang: defaultLocale,
     bgConfigs: [],
   };

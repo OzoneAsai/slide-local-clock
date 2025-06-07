@@ -229,8 +229,20 @@
       <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
 
       <div class="sectionTitle" data-i18n="timeFormatSection">Time Format</div>
+      <label for="timeFormat" data-i18n="timeFormatLabel">Format:</label>
+      <input type="text" id="timeFormat" value="HH:mm:ss">
       <label for="displaySeconds" data-i18n="displaySecondsLabel">秒まで表示する:</label>
       <input type="checkbox" id="displaySeconds" checked>
+
+      <div class="sectionTitle" data-i18n="dateLangSection">Date Line</div>
+      <label for="dateLangSelect" data-i18n="dateLangLabel">Language:</label>
+      <select id="dateLangSelect">
+        <option value="zh-CN">简体中文</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="en-US">English</option>
+        <option value="ja-JP">日本語</option>
+        <option value="ko-KR">한국어</option>
+      </select>
 
       <div class="sectionTitle" data-i18n="controlsSection">Controls</div>
       <div class="controlButtons">
@@ -316,6 +328,27 @@
         'en-US': 'Show seconds:',
         'ja-JP': '秒まで表示する:',
         'ko-KR': '초까지 표시:'
+      },
+      timeFormatLabel: {
+        'zh-CN': '格式:',
+        'zh-TW': '格式:',
+        'en-US': 'Format:',
+        'ja-JP': '形式:',
+        'ko-KR': '형식:'
+      },
+      dateLangSection: {
+        'zh-CN': '日期行',
+        'zh-TW': '日期行',
+        'en-US': 'Date Line',
+        'ja-JP': '日付行',
+        'ko-KR': '날짜 줄'
+      },
+      dateLangLabel: {
+        'zh-CN': '言語:',
+        'zh-TW': '語言:',
+        'en-US': 'Language:',
+        'ja-JP': '言語:',
+        'ko-KR': '언어:'
       },
       controlsSection: {
         'zh-CN': '控制',
@@ -431,6 +464,24 @@
     }
 
     let currentLang = detectDefaultLang();
+    let currentDateLang = currentLang;
+    let currentTimeFormat = 'HH:mm:ss';
+
+    function formatTime(date, fmt) {
+      const pad = (n) => n.toString().padStart(2, '0');
+      const h24 = date.getHours();
+      const h12 = h24 % 12 || 12;
+      return fmt
+        .replace(/HH/g, pad(h24))
+        .replace(/H/g, h24)
+        .replace(/hh/g, pad(h12))
+        .replace(/h/g, h12)
+        .replace(/mm/g, pad(date.getMinutes()))
+        .replace(/m/g, date.getMinutes())
+        .replace(/ss/g, pad(date.getSeconds()))
+        .replace(/s/g, date.getSeconds())
+        .replace(/A/g, h24 < 12 ? 'AM' : 'PM');
+    }
 
     function t(key) {
       return (translations[key] && translations[key][currentLang]) ||
@@ -454,13 +505,9 @@
 
     function updateClock() {
       const now = new Date();
-      const displaySeconds = document.getElementById('displaySeconds').checked;
-      if (displaySeconds) {
-        document.getElementById('time').textContent = now.toLocaleTimeString(currentLang);
-      } else {
-        document.getElementById('time').textContent = now.toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit' });
-      }
-      document.getElementById('date').textContent = now.toLocaleDateString(currentLang);
+      const fmt = document.getElementById('timeFormat').value || currentTimeFormat;
+      document.getElementById('time').textContent = formatTime(now, fmt);
+      document.getElementById('date').textContent = now.toLocaleDateString(currentDateLang);
     }
     setInterval(updateClock, 1000);
     updateClock();
@@ -533,6 +580,20 @@
       saveSettings();
     });
 
+    const timeFormatInput = document.getElementById('timeFormat');
+    timeFormatInput.addEventListener('change', function() {
+      currentTimeFormat = this.value;
+      updateClock();
+      saveSettings();
+    });
+
+    const dateLangSelect = document.getElementById('dateLangSelect');
+    dateLangSelect.addEventListener('change', function() {
+      currentDateLang = this.value;
+      updateClock();
+      saveSettings();
+    });
+
     fetch('/backgrounds')
       .then(r => r.json())
       .then(data => {
@@ -553,6 +614,14 @@
           }
           if (typeof conf.displaySeconds === 'boolean') {
             document.getElementById('displaySeconds').checked = conf.displaySeconds;
+          }
+          if (conf.timeFormat) {
+            currentTimeFormat = conf.timeFormat;
+            document.getElementById('timeFormat').value = conf.timeFormat;
+          }
+          if (conf.dateLang) {
+            currentDateLang = conf.dateLang;
+            document.getElementById('dateLangSelect').value = conf.dateLang;
           }
           if (conf.lang) {
             currentLang = conf.lang;
@@ -680,6 +749,8 @@
         font: fontSelect.value,
         charSizeMultiplier: parseFloat(document.getElementById('charSizeMultiplier').value),
         displaySeconds: document.getElementById('displaySeconds').checked,
+        timeFormat: document.getElementById('timeFormat').value,
+        dateLang: currentDateLang,
         lang: currentLang,
         bgConfigs,
       };
