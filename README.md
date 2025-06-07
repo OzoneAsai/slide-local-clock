@@ -1,7 +1,7 @@
 # Local Clock Slideshow
 
 This project shows a clock with a photo slideshow in the browser. The
-`index.html` loads images from `~/clocl_wallpapers` so you can easily update the
+`index.html` loads images from `~/clock_wallpapers` so you can easily update the
 slideshow contents.
 
 Everything is powered by Node.js, so no Python runtime is required.
@@ -20,7 +20,7 @@ Everything is powered by Node.js, so no Python runtime is required.
    By binding only to the local interface the Windows firewall prompt is
    avoided.
 
-During development the app serves images from the folder `~/clocl_wallpapers`.
+During development the app serves images from the folder `~/clock_wallpapers`.
 If the directory does not exist it will be created automatically. Place any
 background images (jpg, png or gif) there and they will be shown in the
 slideshow. A button in the settings overlay opens this folder in your file
@@ -36,7 +36,7 @@ settings between runs.
 
 You can package this project as a standalone application that includes a
 browser using Electron. The packaged app also reads images from the
-`~/clocl_wallpapers` directory so you can update backgrounds without
+`~/clock_wallpapers` directory so you can update backgrounds without
 rebuilding. Use the "Open Image Folder" button from the settings overlay to
 quickly open that directory.
 
@@ -62,7 +62,7 @@ compile.bat      # Windows (produces a portable .exe)
 `compile.bat` sets the environment variable `CSC_IDENTITY_AUTO_DISCOVERY=false`
 so Electron Builder won't attempt code signing automatically.
 
-After building, put your images into the `~/clocl_wallpapers` directory to
+After building, put your images into the `~/clock_wallpapers` directory to
 change the slideshow without rebuilding.
 Your saved settings will be read from the same data directory used in
 development, so preferences carry over to the packaged app.

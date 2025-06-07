@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const osLocale = require('os-locale');
+const supportedLangs = require('./public/lang-constants');
 
 function startServer(options = {}) {
   const app = express();
@@ -9,7 +11,7 @@ function startServer(options = {}) {
   const host = options.host || process.env.HOST || '127.0.0.1';
   const appDir = options.appDir || path.join(__dirname, 'public');
   const staticDir =
-    options.staticDir || path.join(os.homedir(), 'clocl_wallpapers');
+    options.staticDir || path.join(os.homedir(), 'clock_wallpapers');
 
   function getDataDir() {
     if (process.platform === 'win32') {
@@ -22,10 +24,19 @@ function startServer(options = {}) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
   const settingsFile = path.join(dataDir, 'settings.json');
+  function matchLang(locale) {
+    if (!locale) return 'en-US';
+    const norm = locale.replace('_','-');
+    const found = supportedLangs.find(l => norm.toLowerCase().startsWith(l.toLowerCase().substring(0,2)));
+    return found || 'en-US';
+  }
+  const defaultLocale = matchLang(osLocale.sync());
+
   let settings = {
     font: 'noto-sans-jp-default',
     charSizeMultiplier: 1.0,
     displaySeconds: true,
+    lang: defaultLocale,
     bgConfigs: [],
   };
   if (fs.existsSync(settingsFile)) {
