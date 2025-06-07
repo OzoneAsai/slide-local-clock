@@ -1,0 +1,51 @@
+{
+  "name": "slide-local-clock",
+  "version": "1.0.0",
+  "description": "Clock slideshow with Electron and Express",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "electron": "electron .",
+    "pack": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.example.slideclock",
+    "productName": "Slide Local Clock",
+    "files": [
+      "public/**/*",
+      "main.js",
+      "preload.js",
+      "server.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "static",
+        "to": "static"
+      }
+    ],
+    "linux": {
+      "target": "AppImage"
+    },
+    "win": {
+      "target": "portable"
+    }
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.16"
+  },
+  "overrides": {
+    "glob": "^11.0.2",
+    "rimraf": "^6.0.1",
+    "@npmcli/move-file": "npm:@npmcli/fs@^2.1.2"
+  }
+}
