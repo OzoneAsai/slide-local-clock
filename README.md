@@ -16,7 +16,9 @@ Everything is powered by Node.js, so no Python runtime is required.
    ```sh
    node server.js
    ```
-   The page will be available at <http://localhost:3000>.
+   The page will be available at <http://127.0.0.1:3000>.
+   By binding only to the local interface the Windows firewall prompt is
+   avoided.
 
 During development the app serves images from the folder `~/clocl_wallpapers`.
 If the directory does not exist it will be created automatically. Place any

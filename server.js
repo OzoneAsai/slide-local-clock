@@ -6,6 +6,7 @@ const os = require('os');
 function startServer(options = {}) {
   const app = express();
   const port = options.port || process.env.PORT || 3000;
+  const host = options.host || process.env.HOST || '127.0.0.1';
   const appDir = options.appDir || path.join(__dirname, 'public');
   const staticDir =
     options.staticDir || path.join(os.homedir(), 'clocl_wallpapers');
@@ -75,8 +76,8 @@ function startServer(options = {}) {
     });
   });
 
-  return app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+  return app.listen(port, host, () => {
+    console.log(`Server running on http://${host}:${port}`);
   });
 }
 
