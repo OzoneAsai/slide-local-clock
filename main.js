@@ -8,9 +8,10 @@ let serverInstance;
 
 function createWindow() {
   const port = process.env.PORT || 3000;
+  const host = '127.0.0.1';
   const appDir = path.join(__dirname, 'public');
   const staticDir = path.join(os.homedir(), 'clocl_wallpapers');
-  serverInstance = startServer({ port, appDir, staticDir });
+  serverInstance = startServer({ port, host, appDir, staticDir });
 
   mainWindow = new BrowserWindow({
     width: 800,
@@ -21,7 +22,7 @@ function createWindow() {
       contextIsolation: true,
     },
   });
-  mainWindow.loadURL(`http://localhost:${port}`);
+  mainWindow.loadURL(`http://${host}:${port}`);
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
