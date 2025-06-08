@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Lock Screen UI with Custom Config, Font, Text Size & Time Format</title>
@@ -176,6 +176,18 @@
       width: 100%;
       font-size: 14px;
     }
+    .languageConfig {
+      margin-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      padding-top: 10px;
+    }
+    .languageConfig label {
+      font-size: 14px;
+    }
+    .languageConfig select {
+      width: 100%;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -187,10 +199,22 @@
   <button id="settingsToggle">⚙️</button>
 
   <div id="settingsOverlay">
-    <div id="settingsOverlayHeader">Settings</div>
+    <div id="settingsOverlayHeader" data-i18n="settingsTitle">Settings</div>
     <div id="settingsOverlayContent">
-      <div class="sectionTitle">Font</div>
-      <label for="fontSelect">フォント選択:</label>
+      <div class="languageConfig">
+        <div class="sectionTitle" id="languageTitle" data-i18n="languageTitle">Language</div>
+        <label for="langSelect" id="languageLabel" data-i18n="languageLabel">Language:</label>
+        <select id="langSelect">
+          <option value="zh-CN">简体中文</option>
+          <option value="zh-TW">繁體中文</option>
+          <option value="en-US">English</option>
+          <option value="ja-JP">日本語</option>
+          <option value="ko-KR">한국어</option>
+        </select>
+      </div>
+
+      <div class="sectionTitle" data-i18n="fontSection">Font</div>
+      <label for="fontSelect" data-i18n="fontSelectLabel">フォント選択:</label>
       <select id="fontSelect">
         <option value="noto-sans-jp-default">Noto Sans JP</option>
         <option value="noto-serif-jp-default">Noto Serif JP</option>
@@ -200,59 +224,378 @@
         <option value="kaisei-decol-regular">Kaisei Decol</option>
       </select>
 
-      <div class="sectionTitle">Text Size</div>
-      <label for="charSizeMultiplier">文字サイズ倍率 (例: 1.0):</label>
+      <div class="sectionTitle" data-i18n="textSizeSection">Text Size</div>
+      <label for="charSizeMultiplier" data-i18n="charSizeLabel">文字サイズ倍率 (例: 1.0):</label>
       <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
+      <label for="dateSizeRatio" data-i18n="dateRatioLabel">日付文字サイズ比 (例: 0.5):</label>
+      <input type="number" id="dateSizeRatio" step="0.1" min="0.1" value="0.5">
 
-      <div class="sectionTitle">Time Format</div>
-      <label for="displaySeconds">秒まで表示する:</label>
-      <input type="checkbox" id="displaySeconds" checked>
+      <div class="sectionTitle" data-i18n="timeFormatSection">Time Format</div>
+      <label for="timeFormat" data-i18n="timeFormatLabel">Format:</label>
+      <input type="text" id="timeFormat" value="HH:mm:ss">
 
-      <div class="sectionTitle">Controls</div>
+      <div class="sectionTitle" data-i18n="dateLangSection">Date Line</div>
+      <label for="dateLangSelect" data-i18n="dateLangLabel">Language:</label>
+      <select id="dateLangSelect">
+        <option value="zh-CN">简体中文</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="en-US">English</option>
+        <option value="ja-JP">日本語</option>
+        <option value="ko-KR">한국어</option>
+      </select>
+
+      <div class="sectionTitle" data-i18n="dateFormatSection">Date Format</div>
+      <label for="dateFormatSelect" data-i18n="dateFormatLabel">Format:</label>
+      <select id="dateFormatSelect"></select>
+
+      <div class="sectionTitle" data-i18n="controlsSection">Controls</div>
       <div class="controlButtons">
-        <button id="prevBtn">Prev</button>
-        <button id="fullscreenBtn">Full</button>
-        <button id="nextBtn">Next</button>
+        <button id="prevBtn" data-i18n="prevBtn">Prev</button>
+        <button id="fullscreenBtn" data-i18n="fullBtn">Full</button>
+        <button id="nextBtn" data-i18n="nextBtn">Next</button>
       </div>
 
-      <div class="sectionTitle">Background Images</div>
-      <button id="openImageConfigBtn">画像設定</button>
-      <button id="openFolderBtn">フォルダーを開く</button>
+      <div class="sectionTitle" data-i18n="backgroundSection">Background Images</div>
+      <button id="openImageConfigBtn" data-i18n="imageConfigButton">画像設定</button>
+      <button id="openFolderBtn" data-i18n="openFolderButton">フォルダーを開く</button>
     </div>
   </div>
 
   <div id="imageConfigOverlay">
     <div id="imageConfigOverlayHeader">
-      Image Settings <span id="imageConfigOverlayClose">✖</span>
+      <span id="imageSettingsTitle" data-i18n="imageSettingsTitle">Image Settings</span> <span id="imageConfigOverlayClose">✖</span>
     </div>
     <div id="imageConfigOverlayContent"></div>
   </div>
+  <script src="lang-constants.js"></script>
   <script>
+    const translations = {
+      settingsTitle: {
+        'zh-CN': '设置',
+        'zh-TW': '設定',
+        'en-US': 'Settings',
+        'ja-JP': '設定',
+        'ko-KR': '설정'
+      },
+      languageTitle: {
+        'zh-CN': '语言',
+        'zh-TW': '語言',
+        'en-US': 'Language',
+        'ja-JP': '言語',
+        'ko-KR': '언어'
+      },
+      languageLabel: {
+        'zh-CN': '选择语言:',
+        'zh-TW': '選擇語言:',
+        'en-US': 'Language:',
+        'ja-JP': '言語選択:',
+        'ko-KR': '언어 선택:'
+      },
+      fontSection: {
+        'zh-CN': '字体',
+        'zh-TW': '字體',
+        'en-US': 'Font',
+        'ja-JP': 'フォント',
+        'ko-KR': '폰트'
+      },
+      fontSelectLabel: {
+        'zh-CN': '选择字体:',
+        'zh-TW': '選擇字體:',
+        'en-US': 'Font:',
+        'ja-JP': 'フォント選択:',
+        'ko-KR': '폰트 선택:'
+      },
+      textSizeSection: {
+        'zh-CN': '文字大小',
+        'zh-TW': '文字大小',
+        'en-US': 'Text Size',
+        'ja-JP': '文字サイズ',
+        'ko-KR': '글자 크기'
+      },
+      charSizeLabel: {
+        'zh-CN': '字体大小倍数 (如 1.0):',
+        'zh-TW': '字體大小倍數 (如 1.0):',
+        'en-US': 'Character size multiplier (e.g. 1.0):',
+        'ja-JP': '文字サイズ倍率 (例: 1.0):',
+        'ko-KR': '글자 크기 배율 (예: 1.0):'
+      },
+      dateRatioLabel: {
+        'zh-CN': '日期文字/时间文字 比例 (如 0.5):',
+        'zh-TW': '日期文字/時間文字 比例 (如 0.5):',
+        'en-US': 'Date/Time size ratio (e.g. 0.5):',
+        'ja-JP': '日付文字サイズ比 (例: 0.5):',
+        'ko-KR': '날짜 글자/시간 글자 비율 (예: 0.5):'
+      },
+      timeFormatSection: {
+        'zh-CN': '时间格式',
+        'zh-TW': '時間格式',
+        'en-US': 'Time Format',
+        'ja-JP': '時刻表示形式',
+        'ko-KR': '시간 형식'
+      },
+      timeFormatLabel: {
+        'zh-CN': '格式:',
+        'zh-TW': '格式:',
+        'en-US': 'Format:',
+        'ja-JP': '形式:',
+        'ko-KR': '형식:'
+      },
+      dateLangSection: {
+        'zh-CN': '日期行',
+        'zh-TW': '日期行',
+        'en-US': 'Date Line',
+        'ja-JP': '日付行',
+        'ko-KR': '날짜 줄'
+      },
+      dateLangLabel: {
+        'zh-CN': '言語:',
+        'zh-TW': '語言:',
+        'en-US': 'Language:',
+        'ja-JP': '言語:',
+        'ko-KR': '언어:'
+      },
+      dateFormatSection: {
+        'zh-CN': '日期格式',
+        'zh-TW': '日期格式',
+        'en-US': 'Date Format',
+        'ja-JP': '日付形式',
+        'ko-KR': '날짜 형식'
+      },
+      dateFormatLabel: {
+        'zh-CN': '格式:',
+        'zh-TW': '格式:',
+        'en-US': 'Format:',
+        'ja-JP': '形式:',
+        'ko-KR': '형식:'
+      },
+      controlsSection: {
+        'zh-CN': '控制',
+        'zh-TW': '控制',
+        'en-US': 'Controls',
+        'ja-JP': '操作',
+        'ko-KR': '컨트롤'
+      },
+      prevBtn: {
+        'zh-CN': '上一张',
+        'zh-TW': '上一張',
+        'en-US': 'Prev',
+        'ja-JP': '前',
+        'ko-KR': '이전'
+      },
+      fullBtn: {
+        'zh-CN': '全屏',
+        'zh-TW': '全屏',
+        'en-US': 'Full',
+        'ja-JP': '全画面',
+        'ko-KR': '전체화면'
+      },
+      nextBtn: {
+        'zh-CN': '下一张',
+        'zh-TW': '下一張',
+        'en-US': 'Next',
+        'ja-JP': '次',
+        'ko-KR': '다음'
+      },
+      backgroundSection: {
+        'zh-CN': '背景图片',
+        'zh-TW': '背景圖片',
+        'en-US': 'Background Images',
+        'ja-JP': '背景画像',
+        'ko-KR': '배경 이미지'
+      },
+      imageConfigButton: {
+        'zh-CN': '图片设置',
+        'zh-TW': '圖片設定',
+        'en-US': 'Image Config',
+        'ja-JP': '画像設定',
+        'ko-KR': '이미지 설정'
+      },
+      openFolderButton: {
+        'zh-CN': '打开文件夹',
+        'zh-TW': '打開資料夾',
+        'en-US': 'Open Folder',
+        'ja-JP': 'フォルダーを開く',
+        'ko-KR': '폴더 열기'
+      },
+      imageSettingsTitle: {
+        'zh-CN': '图片设置',
+        'zh-TW': '圖片設定',
+        'en-US': 'Image Settings',
+        'ja-JP': '画像設定',
+        'ko-KR': '이미지 설정'
+      },
+      imageLabel: {
+        'zh-CN': '图片',
+        'zh-TW': '圖片',
+        'en-US': 'Image',
+        'ja-JP': '画像',
+        'ko-KR': '이미지'
+      },
+      slideIntervalLabel: {
+        'zh-CN': '幻灯间隔 (秒):',
+        'zh-TW': '幻燈間隔 (秒):',
+        'en-US': 'Slide Interval (sec):',
+        'ja-JP': 'スライド間隔 (秒):',
+        'ko-KR': '슬라이드 간격 (초):'
+      },
+      blurToggleLabel: {
+        'zh-CN': '应用模糊:',
+        'zh-TW': '套用模糊:',
+        'en-US': 'Apply Blur:',
+        'ja-JP': 'ブラー適用:',
+        'ko-KR': '블러 적용:'
+      },
+      gradientBlurToggleLabel: {
+        'zh-CN': '渐变模糊 (文字周围):',
+        'zh-TW': '漸層模糊 (文字周圍):',
+        'en-US': 'Gradient Blur (around text):',
+        'ja-JP': 'Gradientブラー (文字周辺):',
+        'ko-KR': '그라데이션 블러 (텍스트 주변):'
+      },
+      previewBtn: {
+        'zh-CN': '预览',
+        'zh-TW': '預覽',
+        'en-US': 'Preview',
+        'ja-JP': 'プレビュー',
+        'ko-KR': '미리보기'
+      },
+      failedOpenFolder: {
+        'zh-CN': '无法打开文件夹。',
+        'zh-TW': '無法打開資料夾。',
+        'en-US': 'Failed to open folder.',
+        'ja-JP': 'フォルダーを開けませんでした。',
+        'ko-KR': '폴더를 열 수 없습니다.'
+      },
+      electronRequired: {
+        'zh-CN': '打开文件夹需要Electron版本。',
+        'zh-TW': '打開資料夾需要 Electron 版本。',
+        'en-US': 'Opening the folder requires the Electron build.',
+        'ja-JP': 'フォルダーを開くにはElectron版が必要です。',
+        'ko-KR': '폴더를 열려면 Electron 빌드가 필요합니다.'
+      }
+    };
+
+    function detectDefaultLang() {
+      const lang = navigator.language || 'en-US';
+      const match = supportedLangs.find(l => lang.startsWith(l.substring(0,2)));
+      return match || 'en-US';
+    }
+
+    let currentLang = detectDefaultLang();
+    let currentDateLang = currentLang;
+    let currentTimeFormat = 'HH:mm:ss';
+    let currentDateFormat = 'long';
+    let currentDateRatio = 0.5;
+
+    function formatTime(date, fmt) {
+      const pad = (n) => n.toString().padStart(2, '0');
+      const h24 = date.getHours();
+      const h12 = h24 % 12 || 12;
+      return fmt
+        .replace(/HH/g, pad(h24))
+        .replace(/H/g, h24)
+        .replace(/hh/g, pad(h12))
+        .replace(/h/g, h12)
+        .replace(/mm/g, pad(date.getMinutes()))
+        .replace(/m/g, date.getMinutes())
+        .replace(/ss/g, pad(date.getSeconds()))
+        .replace(/s/g, date.getSeconds())
+        .replace(/A/g, h24 < 12 ? 'AM' : 'PM');
+    }
+
+    function formatDate(date, lang, style) {
+      if (style === 'monthDayShortWeekday' || style === 'monthDayLongWeekday') {
+        const base = new Intl.DateTimeFormat(lang, { month: 'numeric', day: 'numeric' }).format(date);
+        const wd = new Intl.DateTimeFormat(lang, { weekday: style === 'monthDayShortWeekday' ? 'short' : 'long' }).format(date);
+        return style === 'monthDayShortWeekday' ? `${base}(${wd})` : `${base}${wd}`;
+      }
+      const baseOptions = style.startsWith('numeric') ?
+        { year: 'numeric', month: 'numeric', day: 'numeric' } :
+        { year: 'numeric', month: 'long', day: 'numeric' };
+      let str = new Intl.DateTimeFormat(lang, baseOptions).format(date);
+      if (style.endsWith('Weekday')) {
+        const wd = new Intl.DateTimeFormat(lang, { weekday: 'short' }).format(date);
+        str += ` (${wd})`;
+      }
+      return str;
+    }
+
+    function t(key) {
+      return (translations[key] && translations[key][currentLang]) ||
+             (translations[key] && translations[key]['en-US']) || key;
+    }
+
+    const dateStyleCodes = [
+      'numeric',
+      'numericWeekday',
+      'monthDayShortWeekday',
+      'monthDayLongWeekday',
+      'long',
+      'longWeekday'
+    ];
+
+    function buildDateFormatOptions() {
+      const select = document.getElementById('dateFormatSelect');
+      const prev = select.value;
+      select.innerHTML = '';
+      const sample = new Date(2025, 5, 8);
+      dateStyleCodes.forEach(code => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = formatDate(sample, currentDateLang, code);
+        select.appendChild(opt);
+      });
+      if (prev) select.value = prev;
+    }
+
+    buildDateFormatOptions();
+
+    function applyTranslations() {
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key]) {
+          el.textContent = t(key);
+        }
+      });
+      buildDateFormatOptions();
+      const overlay = document.getElementById('imageConfigOverlay');
+      if (overlay && overlay.style.display === 'block') {
+        buildImageConfigOverlay();
+      }
+      updateClock();
+    }
+
     function updateClock() {
       const now = new Date();
-      const displaySeconds = document.getElementById('displaySeconds').checked;
-      if (displaySeconds) {
-        document.getElementById('time').textContent = now.toLocaleTimeString();
-      } else {
-        document.getElementById('time').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }
-      document.getElementById('date').textContent = now.toLocaleDateString();
+      const fmt = document.getElementById('timeFormat').value || currentTimeFormat;
+      const dfmt = document.getElementById('dateFormatSelect').value || currentDateFormat;
+      document.getElementById('time').textContent = formatTime(now, fmt);
+      document.getElementById('date').textContent = formatDate(now, currentDateLang, dfmt);
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    function updateTextSize(multiplier) {
+    function updateTextSize(multiplier, ratio) {
       const timeElem = document.getElementById('time');
       const dateElem = document.getElementById('date');
       timeElem.style.fontSize = (80 * multiplier) + 'px';
-      dateElem.style.fontSize = (40 * multiplier) + 'px';
+      dateElem.style.fontSize = (80 * multiplier * ratio) + 'px';
     }
-    updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value));
+    updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value),
+                   parseFloat(document.getElementById('dateSizeRatio').value));
     document.getElementById('charSizeMultiplier').addEventListener('change', e => {
-      updateTextSize(parseFloat(e.target.value));
+      currentDateRatio = parseFloat(document.getElementById('dateSizeRatio').value);
+      updateTextSize(parseFloat(e.target.value), currentDateRatio);
       saveSettings();
     });
-    document.getElementById('displaySeconds').addEventListener('change', saveSettings);
+
+    document.getElementById('dateSizeRatio').addEventListener('change', e => {
+      currentDateRatio = parseFloat(e.target.value);
+      updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value),
+                     currentDateRatio);
+      saveSettings();
+    });
 
     let backgrounds = [];
     let currentBg = 0;
@@ -271,10 +614,10 @@
       if (window.electronAPI && window.electronAPI.openImagesFolder) {
         window.electronAPI.openImagesFolder().catch(err => {
           console.error(err);
-          alert('Failed to open folder.');
+          alert(t('failedOpenFolder'));
         });
       } else {
-        alert('Opening the folder requires the Electron build.');
+        alert(t('electronRequired'));
       }
     });
 
@@ -291,7 +634,11 @@
     document.getElementById('prevBtn').addEventListener('click', prevBackground);
     document.getElementById('nextBtn').addEventListener('click', nextBackground);
     document.getElementById('fullscreenBtn').addEventListener('click', () => {
-      document.documentElement.requestFullscreen();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
     });
 
     const fontSelect = document.getElementById('fontSelect');
@@ -299,6 +646,35 @@
       const clockElem = document.getElementById('clock');
       clockElem.className = '';
       clockElem.classList.add(this.value);
+      saveSettings();
+    });
+
+    const langSelect = document.getElementById('langSelect');
+    langSelect.addEventListener('change', function() {
+      currentLang = this.value;
+      applyTranslations();
+      saveSettings();
+    });
+
+    const timeFormatInput = document.getElementById('timeFormat');
+    timeFormatInput.addEventListener('change', function() {
+      currentTimeFormat = this.value;
+      updateClock();
+      saveSettings();
+    });
+
+    const dateLangSelect = document.getElementById('dateLangSelect');
+    dateLangSelect.addEventListener('change', function() {
+      currentDateLang = this.value;
+      buildDateFormatOptions();
+      updateClock();
+      saveSettings();
+    });
+
+    const dateFormatSelect = document.getElementById('dateFormatSelect');
+    dateFormatSelect.addEventListener('change', function() {
+      currentDateFormat = this.value;
+      updateClock();
       saveSettings();
     });
 
@@ -318,10 +694,31 @@
           }
           if (typeof conf.charSizeMultiplier === 'number') {
             document.getElementById('charSizeMultiplier').value = conf.charSizeMultiplier;
-            updateTextSize(conf.charSizeMultiplier);
           }
-          if (typeof conf.displaySeconds === 'boolean') {
-            document.getElementById('displaySeconds').checked = conf.displaySeconds;
+          if (typeof conf.dateSizeRatio === 'number') {
+            document.getElementById('dateSizeRatio').value = conf.dateSizeRatio;
+            currentDateRatio = conf.dateSizeRatio;
+          }
+          if (typeof conf.charSizeMultiplier === 'number') {
+            updateTextSize(conf.charSizeMultiplier, currentDateRatio);
+          }
+          if (conf.timeFormat) {
+            currentTimeFormat = conf.timeFormat;
+            document.getElementById('timeFormat').value = conf.timeFormat;
+          }
+          if (conf.dateLang) {
+            currentDateLang = conf.dateLang;
+            document.getElementById('dateLangSelect').value = conf.dateLang;
+          }
+          if (conf.dateFormat) {
+            currentDateFormat = conf.dateFormat;
+            document.getElementById('dateFormatSelect').value = conf.dateFormat;
+          }
+          if (conf.lang) {
+            currentLang = conf.lang;
+            document.getElementById('langSelect').value = currentLang;
+          } else {
+            document.getElementById('langSelect').value = currentLang;
           }
           if (conf.bgConfigs && conf.bgConfigs.length === backgrounds.length) {
             bgConfigs = conf.bgConfigs;
@@ -332,6 +729,7 @@
           setBackground(backgrounds[currentBg]);
           scheduleNextSlide();
         }
+        applyTranslations();
       });
 
     function buildImageConfigOverlay() {
@@ -342,18 +740,18 @@
         block.className = 'imageConfig';
         if (i === currentBg) block.classList.add('active');
         block.innerHTML = `
-          <strong>Image ${i + 1}</strong>
-          <label>スライド間隔 (秒):
+          <strong>${t('imageLabel')} ${i + 1}</strong>
+          <label>${t('slideIntervalLabel')}
             <input type="number" min="1" value="${bgConfigs[i].interval / 1000}" data-idx="${i}" class="intervalInput">
           </label>
-          <label>ブラー適用:
+          <label>${t('blurToggleLabel')}
             <input type="checkbox" data-idx="${i}" class="blurToggle" ${bgConfigs[i].blur ? 'checked' : ''}>
           </label>
-          <label>Gradientブラー (文字周辺):
+          <label>${t('gradientBlurToggleLabel')}
             <input type="checkbox" data-idx="${i}" class="gradientBlurToggle" ${bgConfigs[i].gradientBlur ? 'checked' : ''}>
           </label>
           <div style="margin-top: 8px;">
-            <button class="previewBtn" data-idx="${i}">プレビュー</button>
+            <button class="previewBtn" data-idx="${i}">${t('previewBtn')}</button>
           </div>
         `;
         container.appendChild(block);
@@ -441,7 +839,11 @@
       return {
         font: fontSelect.value,
         charSizeMultiplier: parseFloat(document.getElementById('charSizeMultiplier').value),
-        displaySeconds: document.getElementById('displaySeconds').checked,
+        dateSizeRatio: parseFloat(document.getElementById('dateSizeRatio').value),
+        timeFormat: document.getElementById('timeFormat').value,
+        dateLang: currentDateLang,
+        dateFormat: document.getElementById('dateFormatSelect').value,
+        lang: currentLang,
         bgConfigs,
       };
     }

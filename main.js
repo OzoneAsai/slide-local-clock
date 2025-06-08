@@ -10,7 +10,7 @@ function createWindow() {
   const port = process.env.PORT || 3000;
   const host = '127.0.0.1';
   const appDir = path.join(__dirname, 'public');
-  const staticDir = path.join(os.homedir(), 'clocl_wallpapers');
+  const staticDir = path.join(os.homedir(), 'clock_wallpapers');
   serverInstance = startServer({ port, host, appDir, staticDir });
 
   mainWindow = new BrowserWindow({
@@ -29,7 +29,7 @@ function createWindow() {
 }
 
 ipcMain.handle('open-images-folder', async () => {
-  const dir = path.join(os.homedir(), 'clocl_wallpapers');
+  const dir = path.join(os.homedir(), 'clock_wallpapers');
   const err = await shell.openPath(dir);
   if (err) {
     console.error('Failed to open folder:', err);
