@@ -4,7 +4,7 @@ This project shows a clock with a photo slideshow in the browser. The
 `index.html` loads images from `~/clock_wallpapers` so you can easily update the
 slideshow contents.
 
-Everything is powered by Node.js, so no Python runtime is required.
+Everything is powered by Node.js (v14.18 or newer), so no Python runtime is required.
 
 ## Running (development)
 
