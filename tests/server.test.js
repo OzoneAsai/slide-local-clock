@@ -37,6 +37,7 @@ test('settings roundtrip', async () => {
   newSettings.timeFormat = 'H:m:s';
   newSettings.dateLang = 'ja-JP';
   newSettings.dateFormat = 'numericWeekday';
+  newSettings.dateSizeRatio = 0.75;
   const save = await request(server).post('/settings').send(newSettings);
   expect(save.status).toBe(200);
   expect(save.body).toEqual({ ok: true });
@@ -44,4 +45,5 @@ test('settings roundtrip', async () => {
   expect(after.body.timeFormat).toBe(newSettings.timeFormat);
   expect(after.body.dateLang).toBe(newSettings.dateLang);
   expect(after.body.dateFormat).toBe(newSettings.dateFormat);
+  expect(after.body.dateSizeRatio).toBe(newSettings.dateSizeRatio);
 });

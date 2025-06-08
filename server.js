@@ -35,6 +35,7 @@ function startServer(options = {}) {
   let settings = {
     font: 'noto-sans-jp-default',
     charSizeMultiplier: 1.0,
+    dateSizeRatio: 0.5,
     timeFormat: 'HH:mm:ss',
     dateFormat: 'numeric',
     dateLang: defaultLocale,

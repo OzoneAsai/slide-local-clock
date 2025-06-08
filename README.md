@@ -33,8 +33,9 @@ format are saved to a `settings.json` file inside your system data directory
 the clock can use a custom format string like `HH:mm:ss`. The second line's date
 language and format can be chosen from the settings overlay. Date format options
 adjust to the UI language and show examples such as `6月8日(日)` when Japanese is
-selected. The numeric style is the default. These settings let the app remember
-your preferences between runs.
+selected. The numeric style is the default. The text size can be adjusted with a
+multiplier and the ratio between the time and date lines. These settings let the
+app remember your preferences between runs.
 
 ## Running with Electron
 

@@ -227,6 +227,8 @@
       <div class="sectionTitle" data-i18n="textSizeSection">Text Size</div>
       <label for="charSizeMultiplier" data-i18n="charSizeLabel">文字サイズ倍率 (例: 1.0):</label>
       <input type="number" id="charSizeMultiplier" step="0.1" min="0.1" value="1.0">
+      <label for="dateSizeRatio" data-i18n="dateRatioLabel">日付文字サイズ比 (例: 0.5):</label>
+      <input type="number" id="dateSizeRatio" step="0.1" min="0.1" value="0.5">
 
       <div class="sectionTitle" data-i18n="timeFormatSection">Time Format</div>
       <label for="timeFormat" data-i18n="timeFormatLabel">Format:</label>
@@ -316,6 +318,13 @@
         'en-US': 'Character size multiplier (e.g. 1.0):',
         'ja-JP': '文字サイズ倍率 (例: 1.0):',
         'ko-KR': '글자 크기 배율 (예: 1.0):'
+      },
+      dateRatioLabel: {
+        'zh-CN': '日期文字/时间文字 比例 (如 0.5):',
+        'zh-TW': '日期文字/時間文字 比例 (如 0.5):',
+        'en-US': 'Date/Time size ratio (e.g. 0.5):',
+        'ja-JP': '日付文字サイズ比 (例: 0.5):',
+        'ko-KR': '날짜 글자/시간 글자 비율 (예: 0.5):'
       },
       timeFormatSection: {
         'zh-CN': '时间格式',
@@ -476,6 +485,7 @@
     let currentDateLang = currentLang;
     let currentTimeFormat = 'HH:mm:ss';
     let currentDateFormat = 'long';
+    let currentDateRatio = 0.5;
 
     function formatTime(date, fmt) {
       const pad = (n) => n.toString().padStart(2, '0');
@@ -566,15 +576,24 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    function updateTextSize(multiplier) {
+    function updateTextSize(multiplier, ratio) {
       const timeElem = document.getElementById('time');
       const dateElem = document.getElementById('date');
       timeElem.style.fontSize = (80 * multiplier) + 'px';
-      dateElem.style.fontSize = (40 * multiplier) + 'px';
+      dateElem.style.fontSize = (80 * multiplier * ratio) + 'px';
     }
-    updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value));
+    updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value),
+                   parseFloat(document.getElementById('dateSizeRatio').value));
     document.getElementById('charSizeMultiplier').addEventListener('change', e => {
-      updateTextSize(parseFloat(e.target.value));
+      currentDateRatio = parseFloat(document.getElementById('dateSizeRatio').value);
+      updateTextSize(parseFloat(e.target.value), currentDateRatio);
+      saveSettings();
+    });
+
+    document.getElementById('dateSizeRatio').addEventListener('change', e => {
+      currentDateRatio = parseFloat(e.target.value);
+      updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value),
+                     currentDateRatio);
       saveSettings();
     });
 
@@ -671,7 +690,13 @@
           }
           if (typeof conf.charSizeMultiplier === 'number') {
             document.getElementById('charSizeMultiplier').value = conf.charSizeMultiplier;
-            updateTextSize(conf.charSizeMultiplier);
+          }
+          if (typeof conf.dateSizeRatio === 'number') {
+            document.getElementById('dateSizeRatio').value = conf.dateSizeRatio;
+            currentDateRatio = conf.dateSizeRatio;
+          }
+          if (typeof conf.charSizeMultiplier === 'number') {
+            updateTextSize(conf.charSizeMultiplier, currentDateRatio);
           }
           if (conf.timeFormat) {
             currentTimeFormat = conf.timeFormat;
@@ -810,6 +835,7 @@
       return {
         font: fontSelect.value,
         charSizeMultiplier: parseFloat(document.getElementById('charSizeMultiplier').value),
+        dateSizeRatio: parseFloat(document.getElementById('dateSizeRatio').value),
         timeFormat: document.getElementById('timeFormat').value,
         dateLang: currentDateLang,
         dateFormat: document.getElementById('dateFormatSelect').value,
