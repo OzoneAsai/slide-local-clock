@@ -532,7 +532,7 @@
       dateStyleCodes.forEach(code => {
         const opt = document.createElement('option');
         opt.value = code;
-        opt.textContent = formatDate(sample, currentLang, code);
+        opt.textContent = formatDate(sample, currentDateLang, code);
         select.appendChild(opt);
       });
       if (prev) select.value = prev;
@@ -643,6 +643,7 @@
     const dateLangSelect = document.getElementById('dateLangSelect');
     dateLangSelect.addEventListener('change', function() {
       currentDateLang = this.value;
+      buildDateFormatOptions();
       updateClock();
       saveSettings();
     });
