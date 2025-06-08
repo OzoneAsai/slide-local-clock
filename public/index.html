@@ -634,7 +634,11 @@
     document.getElementById('prevBtn').addEventListener('click', prevBackground);
     document.getElementById('nextBtn').addEventListener('click', nextBackground);
     document.getElementById('fullscreenBtn').addEventListener('click', () => {
-      document.documentElement.requestFullscreen();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
     });
 
     const fontSelect = document.getElementById('fontSelect');
