@@ -51,6 +51,21 @@ quickly open that directory.
 npm run electron
 ```
 
+### Wallpaper mode (Windows only)
+
+You can toggle wallpaper mode from the settings overlay or launch it directly from the command line.
+
+- **From the app:** open the settings overlay (⚙️) and click **Wallpaper Mode**. The main window shrinks to a small controller while the clock attaches to the desktop background. Use the **Stop Wallpaper** button to revert.
+- **From the CLI:**
+  ```
+  npm run electron -- --wallpaper
+  ```
+  This launches the window already attached to the hidden `WorkerW` layer with no controller.
+
+#### How it works
+
+When wallpaper mode begins, the Electron process creates a transparent `BrowserWindow` sized to the primary screen. On Windows a hidden *WorkerW* window sits behind the desktop icons. The `ffi-napi` and `ref-napi` packages let the app call Win32 APIs such as `FindWindowW`, `EnumWindows` and `SetParent`. A message is first sent to `Progman` so that a WorkerW instance exists. The code then enumerates top-level windows to locate the WorkerW lacking a `SHELLDLL_DefView` child. Once found, `SetParent` re-parents the Electron window to this WorkerW, effectively drawing the clock directly behind the icons. The original application window switches to `setting.html` which contains the full settings overlay so you can stop or tweak the wallpaper without closing the app.
+
 ### Building a single executable
 
 Use the provided helper scripts to build a portable executable:

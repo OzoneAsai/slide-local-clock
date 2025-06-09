@@ -490,10 +490,7 @@
         'ko-KR': '월페이퍼 종료'
       }
     };
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const controlMode = urlParams.has('control');
-
+    const controlMode = true;
     function detectDefaultLang() {
       const lang = navigator.language || 'en-US';
       const match = supportedLangs.find(l => lang.startsWith(l.substring(0,2)));

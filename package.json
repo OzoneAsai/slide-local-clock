@@ -38,7 +38,9 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "os-locale": "^5.0.0"
+    "os-locale": "^5.0.0",
+    "ffi-napi": "^4.0.3",
+    "ref-napi": "^3.0.3"
   },
   "devDependencies": {
     "electron": "^36.4.0",
