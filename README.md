@@ -64,7 +64,7 @@ You can toggle wallpaper mode from the settings overlay or launch it directly fr
 
 #### How it works
 
-When wallpaper mode begins, the Electron process creates a transparent `BrowserWindow` sized to the primary screen. On Windows a hidden *WorkerW* window sits behind the desktop icons. The `ffi-napi` and `ref-napi` packages let the app call Win32 APIs such as `FindWindowW`, `EnumWindows` and `SetParent`. A message is first sent to `Progman` so that a WorkerW instance exists. The code then enumerates top-level windows to locate the WorkerW lacking a `SHELLDLL_DefView` child. Once found, `SetParent` re-parents the Electron window to this WorkerW, effectively drawing the clock directly behind the icons. The original application window switches to `setting.html` which contains the full settings overlay so you can stop or tweak the wallpaper without closing the app.
+When wallpaper mode begins, the Electron process creates a transparent `BrowserWindow` sized to the primary screen. On Windows a hidden *WorkerW* window sits behind the desktop icons. A small PowerShell script (`attach-workerw.ps1`) calls Win32 APIs (`FindWindowW`, `EnumWindows`, `SetParent`) to locate that window and parent the Electron window to it. The script is executed using `powershell.exe` so no native Node modules are required. The main application window then loads a tiny `setting.html` redirect which opens `index.html?control` so you can stop or tweak the wallpaper without closing the app.
 
 ### Building a single executable
 

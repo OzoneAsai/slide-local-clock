@@ -1,12 +1,8 @@
 const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const os = require('os');
+const { execFileSync } = require('child_process');
 const startServer = require('./server');
-let ffi, ref;
-if (process.platform === 'win32') {
-  ffi = require('ffi-napi');
-  ref = require('ref-napi');
-}
 
 let mainWindow;
 let wallpaperWindow;
@@ -14,56 +10,24 @@ let serverInstance;
 let host = '127.0.0.1';
 let port = 3000;
 
-function toLPCWSTR(str) {
-  return Buffer.from(str + '\0', 'ucs2');
-}
-
-function getUser32() {
-  if (process.platform !== 'win32') return null;
-  return ffi.Library('user32', {
-    FindWindowW: ['long', ['pointer', 'pointer']],
-    SendMessageTimeoutW: [
-      'ulong',
-      ['long', 'uint', 'ulong', 'ulong', 'uint', 'uint', 'pointer'],
-    ],
-    EnumWindows: ['bool', ['pointer', 'long']],
-    GetClassNameW: ['int', ['long', 'pointer', 'int']],
-    FindWindowExW: ['long', ['long', 'long', 'pointer', 'pointer']],
-    SetParent: ['long', ['long', 'long']],
-  });
-}
-
-function findWorkerW(user32) {
-  const progman = user32.FindWindowW(toLPCWSTR('Progman'), toLPCWSTR('Program Manager'));
-  user32.SendMessageTimeoutW(progman, 0x052C, 0, 0, 0, 1000, ref.NULL);
-
-  let worker = 0;
-  const enumProc = ffi.Callback('bool', ['long', 'long'], (hwnd) => {
-    const clsBuf = Buffer.alloc(256);
-    user32.GetClassNameW(hwnd, clsBuf, 256);
-    const cls = clsBuf.toString('ucs2').replace(/\0+$/, '');
-    if (cls === 'WorkerW') {
-      const child = user32.FindWindowExW(hwnd, 0, toLPCWSTR('SHELLDLL_DefView'), ref.NULL);
-      if (child === 0) {
-        worker = hwnd;
-        return false;
-      }
-    }
-    return true;
-  });
-  user32.EnumWindows(enumProc, 0);
-  return worker;
-}
-
 function attachToWorkerW(win) {
   if (process.platform !== 'win32') return;
-  const user32 = getUser32();
   const hwnd = win.getNativeWindowHandle().readInt32LE(0);
-  const worker = findWorkerW(user32);
-  if (worker && hwnd) {
-    user32.SetParent(hwnd, worker);
+  const script = path.join(__dirname, 'attach-workerw.ps1');
+  try {
+    execFileSync('powershell.exe', [
+      '-NoLogo',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      script,
+      hwnd.toString(),
+    ]);
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     win.setBounds({ x: 0, y: 0, width, height });
+  } catch (err) {
+    console.error('Failed to attach wallpaper window', err);
   }
 }
 
