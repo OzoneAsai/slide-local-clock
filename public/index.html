@@ -258,8 +258,9 @@
       <div class="sectionTitle" data-i18n="backgroundSection">Background Images</div>
       <button id="openImageConfigBtn" data-i18n="imageConfigButton">画像設定</button>
       <button id="openFolderBtn" data-i18n="openFolderButton">フォルダーを開く</button>
+      <button id="overlayBtn" data-i18n="overlayModeButton">Overlay Mode</button>
       <button id="wallpaperBtn" data-i18n="wallpaperModeButton">Wallpaper Mode</button>
-      <button id="stopWallpaperBtn" data-i18n="stopWallpaperButton" style="display:none">Stop Wallpaper</button>
+      <button id="stopDesktopBtn" data-i18n="stopDesktopButton" style="display:none">Stop Desktop</button>
     </div>
   </div>
 
@@ -475,6 +476,13 @@
         'ja-JP': 'フォルダーを開くにはElectron版が必要です。',
         'ko-KR': '폴더를 열려면 Electron 빌드가 필요합니다.'
       },
+      overlayModeButton: {
+        'zh-CN': '桌面覆盖模式',
+        'zh-TW': '桌面覆蓋模式',
+        'en-US': 'Desktop Overlay',
+        'ja-JP': 'デスクトップ上書き',
+        'ko-KR': '데스크톱 오버레이'
+      },
       wallpaperModeButton: {
         'zh-CN': '壁纸模式',
         'zh-TW': '壁紙模式',
@@ -482,12 +490,12 @@
         'ja-JP': '壁紙モード',
         'ko-KR': '월페이퍼 모드'
       },
-      stopWallpaperButton: {
-        'zh-CN': '退出壁纸模式',
-        'zh-TW': '停止壁紙模式',
-        'en-US': 'Stop Wallpaper',
-        'ja-JP': '壁紙モード終了',
-        'ko-KR': '월페이퍼 종료'
+      stopDesktopButton: {
+        'zh-CN': '停止桌面模式',
+        'zh-TW': '停止桌面模式',
+        'en-US': 'Stop Desktop Mode',
+        'ja-JP': 'デスクトップモード終了',
+        'ko-KR': '데스크톱 모드 종료'
       }
     };
 
@@ -632,8 +640,9 @@
     if (controlMode) {
       settingsOverlay.classList.add('open');
       settingsToggle.style.display = 'none';
+      document.getElementById('overlayBtn').style.display = 'none';
       document.getElementById('wallpaperBtn').style.display = 'none';
-      document.getElementById('stopWallpaperBtn').style.display = 'inline-block';
+      document.getElementById('stopDesktopBtn').style.display = 'inline-block';
     }
 
     document.getElementById('openFolderBtn').addEventListener('click', () => {
@@ -667,6 +676,14 @@
       }
     });
 
+    document.getElementById('overlayBtn').addEventListener('click', () => {
+      if (window.electronAPI && window.electronAPI.startOverlay) {
+        window.electronAPI.startOverlay();
+      } else {
+        alert(t('electronRequired'));
+      }
+    });
+
     document.getElementById('wallpaperBtn').addEventListener('click', () => {
       if (window.electronAPI && window.electronAPI.startWallpaper) {
         window.electronAPI.startWallpaper();
@@ -675,9 +692,9 @@
       }
     });
 
-    document.getElementById('stopWallpaperBtn').addEventListener('click', () => {
-      if (window.electronAPI && window.electronAPI.stopWallpaper) {
-        window.electronAPI.stopWallpaper();
+    document.getElementById('stopDesktopBtn').addEventListener('click', () => {
+      if (window.electronAPI && window.electronAPI.stopDesktopMode) {
+        window.electronAPI.stopDesktopMode();
       }
     });
 

@@ -5,7 +5,8 @@ const { execFileSync } = require('child_process');
 const startServer = require('./server');
 
 let mainWindow;
-let wallpaperWindow;
+let desktopWindow;
+let desktopMode; // 'overlay' or 'wallpaper'
 let serverInstance;
 let host = '127.0.0.1';
 let port = 3000;
@@ -31,8 +32,28 @@ function attachToWorkerW(win) {
   }
 }
 
+function attachToProgman(win) {
+  if (process.platform !== 'win32') return;
+  const hwnd = win.getNativeWindowHandle().readInt32LE(0);
+  const script = path.join(__dirname, 'attach-overlay.ps1');
+  try {
+    execFileSync('powershell.exe', [
+      '-NoLogo',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      script,
+      hwnd.toString(),
+    ]);
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    win.setBounds({ x: 0, y: 0, width, height });
+  } catch (err) {
+    console.error('Failed to attach overlay window', err);
+  }
+}
+
 function createWindow() {
-  const wallpaperMode = process.argv.includes('--wallpaper');
   port = process.env.PORT || 3000;
   host = '127.0.0.1';
   const appDir = path.join(__dirname, 'public');
@@ -42,10 +63,6 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    frame: wallpaperMode ? false : true,
-    transparent: wallpaperMode,
-    resizable: !wallpaperMode,
-    skipTaskbar: wallpaperMode,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -53,16 +70,14 @@ function createWindow() {
     },
   });
   mainWindow.loadURL(`http://${host}:${port}`);
-  if (wallpaperMode) {
-    attachToWorkerW(mainWindow);
-  }
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
-function createWallpaperWindow() {
-  wallpaperWindow = new BrowserWindow({
+function createDesktopWindow(mode) {
+  desktopMode = mode;
+  desktopWindow = new BrowserWindow({
     width: 800,
     height: 600,
     frame: false,
@@ -75,10 +90,15 @@ function createWallpaperWindow() {
       contextIsolation: true,
     },
   });
-  wallpaperWindow.loadURL(`http://${host}:${port}`);
-  attachToWorkerW(wallpaperWindow);
-  wallpaperWindow.on('closed', () => {
-    wallpaperWindow = null;
+  desktopWindow.loadURL(`http://${host}:${port}`);
+  if (mode === 'wallpaper') {
+    attachToWorkerW(desktopWindow);
+  } else {
+    attachToProgman(desktopWindow);
+  }
+  desktopWindow.on('closed', () => {
+    desktopWindow = null;
+    desktopMode = null;
   });
 }
 
@@ -90,9 +110,9 @@ ipcMain.handle('open-images-folder', async () => {
   }
 });
 
-ipcMain.handle('start-wallpaper', () => {
-  if (!wallpaperWindow) {
-    createWallpaperWindow();
+ipcMain.handle('start-overlay', () => {
+  if (!desktopWindow) {
+    createDesktopWindow('overlay');
   }
   if (mainWindow) {
     mainWindow.setSize(480, 640);
@@ -100,10 +120,21 @@ ipcMain.handle('start-wallpaper', () => {
   }
 });
 
-ipcMain.handle('stop-wallpaper', () => {
-  if (wallpaperWindow) {
-    wallpaperWindow.close();
-    wallpaperWindow = null;
+ipcMain.handle('start-wallpaper', () => {
+  if (!desktopWindow) {
+    createDesktopWindow('wallpaper');
+  }
+  if (mainWindow) {
+    mainWindow.setSize(480, 640);
+    mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));
+  }
+});
+
+ipcMain.handle('stop-desktop-mode', () => {
+  if (desktopWindow) {
+    desktopWindow.close();
+    desktopWindow = null;
+    desktopMode = null;
   }
   if (mainWindow) {
     mainWindow.setSize(800, 600);
@@ -111,7 +142,22 @@ ipcMain.handle('stop-wallpaper', () => {
   }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  if (process.argv.includes('--overlay')) {
+    createDesktopWindow('overlay');
+    if (mainWindow) {
+      mainWindow.setSize(480, 640);
+      mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));
+    }
+  } else if (process.argv.includes('--wallpaper')) {
+    createDesktopWindow('wallpaper');
+    if (mainWindow) {
+      mainWindow.setSize(480, 640);
+      mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));
+    }
+  }
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -123,8 +169,9 @@ app.on('before-quit', () => {
   if (serverInstance) {
     serverInstance.close();
   }
-  if (wallpaperWindow) {
-    wallpaperWindow.close();
-    wallpaperWindow = null;
+  if (desktopWindow) {
+    desktopWindow.close();
+    desktopWindow = null;
+    desktopMode = null;
   }
 });

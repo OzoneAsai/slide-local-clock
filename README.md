@@ -51,20 +51,27 @@ quickly open that directory.
 npm run electron
 ```
 
+### Desktop overlay (Windows only)
+
+You can place the clock above the desktop, hiding icons. Toggle this from the settings overlay or via the command line.
+
+- **From the app:** open the settings overlay (⚙️) and click **Desktop Overlay**. The main window shrinks to a small controller. Use **Stop Desktop Mode** to revert.
+- **From the CLI:**
+  ```
+  npm run electron -- --overlay
+  ```
+
 ### Wallpaper mode (Windows only)
 
-You can toggle wallpaper mode from the settings overlay or launch it directly from the command line.
+Wallpaper mode embeds the clock behind the desktop icons using a hidden *WorkerW* window.
 
-- **From the app:** open the settings overlay (⚙️) and click **Wallpaper Mode**. The main window shrinks to a small controller while the clock attaches to the desktop background. Use the **Stop Wallpaper** button to revert.
+- **From the app:** choose **Wallpaper Mode** from the settings overlay.
 - **From the CLI:**
   ```
   npm run electron -- --wallpaper
   ```
-  This launches the window already attached to the hidden `WorkerW` layer with no controller.
 
-#### How it works
-
-When wallpaper mode begins, the Electron process creates a transparent `BrowserWindow` sized to the primary screen. On Windows a hidden *WorkerW* window sits behind the desktop icons. A small PowerShell script (`attach-workerw.ps1`) calls Win32 APIs (`FindWindowW`, `EnumWindows`, `SetParent`) to locate that window and parent the Electron window to it. The script is executed using `powershell.exe` so no native Node modules are required. The main application window then loads a tiny `setting.html` redirect which opens `index.html?control` so you can stop or tweak the wallpaper without closing the app.
+The PowerShell script `attach-workerw.ps1` locates the WorkerW window and parents the Electron window to it so your icons stay visible. Both modes load a tiny `setting.html` redirect (`index.html?control`) while active so you can tweak settings.
 
 ### Building a single executable
 

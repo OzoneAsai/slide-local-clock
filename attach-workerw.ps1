@@ -14,21 +14,31 @@ public class Win {
 "@
 $progman = [Win]::FindWindowW("Progman","Program Manager")
 $null = [Win]::SendMessageTimeoutW($progman,0x052C,[IntPtr]::Zero,[IntPtr]::Zero,0,1000,[ref]([IntPtr]::Zero))
-$worker = 0
-$delegate = [Win+EnumWindowsProc]{
-  param([IntPtr]$h,[IntPtr]$l)
-  $sb = New-Object System.Text.StringBuilder 256
-  [Win]::GetClassNameW($h,$sb,$sb.Capacity) | Out-Null
-  if($sb.ToString() -eq 'WorkerW'){
-    $child = [Win]::FindWindowExW($h,[IntPtr]::Zero,'SHELLDLL_DefView',$null)
-    if($child -eq [IntPtr]::Zero){
-      $script:worker = $h
-      return $false
+
+function Get-WorkerW {
+  $script:worker = 0
+  $delegate = [Win+EnumWindowsProc]{
+    param([IntPtr]$h,[IntPtr]$l)
+    $sb = New-Object System.Text.StringBuilder 256
+    [Win]::GetClassNameW($h,$sb,$sb.Capacity) | Out-Null
+    if($sb.ToString() -eq 'WorkerW'){
+      $child = [Win]::FindWindowExW($h,[IntPtr]::Zero,'SHELLDLL_DefView',$null)
+      if($child -eq [IntPtr]::Zero){
+        $script:worker = $h
+        return $false
+      }
     }
+    return $true
   }
-  return $true
+  [Win]::EnumWindows($delegate,[IntPtr]::Zero) | Out-Null
+  return $worker
 }
-[Win]::EnumWindows($delegate,[IntPtr]::Zero) | Out-Null
-if($worker -ne 0 -and $hwnd -ne 0){
-  [Win]::SetParent([IntPtr]$hwnd, [IntPtr]$worker) | Out-Null
+
+$w = 0
+for($i=0; $i -lt 20 -and $w -eq 0; $i++){
+  $w = Get-WorkerW
+  if($w -eq 0){ Start-Sleep -Milliseconds 100 }
+}
+if($w -ne 0 -and $hwnd -ne 0){
+  [Win]::SetParent([IntPtr]$hwnd, [IntPtr]$w) | Out-Null
 }
