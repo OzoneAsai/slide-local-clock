@@ -1,4 +1,4 @@
-param([int]$hwnd)
+param([UInt64]$hwnd)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;

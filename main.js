@@ -11,9 +11,17 @@ let serverInstance;
 let host = '127.0.0.1';
 let port = 3000;
 
+function getWindowHandle(win) {
+  const buf = win.getNativeWindowHandle();
+  if (process.arch === 'ia32') {
+    return buf.readUInt32LE(0);
+  }
+  return Number(buf.readBigUInt64LE(0));
+}
+
 function attachToWorkerW(win) {
   if (process.platform !== 'win32') return;
-  const hwnd = win.getNativeWindowHandle().readInt32LE(0);
+  const hwnd = getWindowHandle(win);
   const script = path.join(__dirname, 'attach-workerw.ps1');
   try {
     execFileSync('powershell.exe', [
@@ -34,7 +42,7 @@ function attachToWorkerW(win) {
 
 function attachToProgman(win) {
   if (process.platform !== 'win32') return;
-  const hwnd = win.getNativeWindowHandle().readInt32LE(0);
+  const hwnd = getWindowHandle(win);
   const script = path.join(__dirname, 'attach-overlay.ps1');
   try {
     execFileSync('powershell.exe', [
