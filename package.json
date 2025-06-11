@@ -22,7 +22,6 @@
       "preload.js",
       "server.js",
       "package.json",
-      "attach-workerw.ps1",
       "attach-overlay.ps1"
     ],
     "extraResources": [
@@ -39,6 +38,7 @@
     }
   },
   "dependencies": {
+    "electron-wallpaper": "^0.0.3",
     "express": "^5.1.0",
     "os-locale": "^5.0.0"
   },

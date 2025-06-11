@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
+const electronWallpaper = require('electron-wallpaper');
 const startServer = require('./server');
 
 let mainWindow;
@@ -21,18 +22,8 @@ function getWindowHandle(win) {
 
 function attachToWorkerW(win) {
   if (process.platform !== 'win32') return;
-  const hwnd = getWindowHandle(win);
-  const script = path.join(__dirname, 'attach-workerw.ps1');
   try {
-    execFileSync('powershell.exe', [
-      '-NoLogo',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      script,
-      hwnd.toString(),
-    ]);
+    electronWallpaper.attachWindow(win);
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     win.setBounds({ x: 0, y: 0, width, height });
   } catch (err) {
