@@ -21,7 +21,9 @@
       "main.js",
       "preload.js",
       "server.js",
-      "package.json"
+      "package.json",
+      "attach-workerw.ps1",
+      "attach-overlay.ps1"
     ],
     "extraResources": [
       {

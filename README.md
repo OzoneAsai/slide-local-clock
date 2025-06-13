@@ -51,6 +51,28 @@ quickly open that directory.
 npm run electron
 ```
 
+### Desktop overlay (Windows only)
+
+You can place the clock above the desktop, hiding icons. Toggle this from the settings overlay or via the command line.
+
+- **From the app:** open the settings overlay (⚙️) and click **Desktop Overlay**. The main window shrinks to a small controller. Use **Stop Desktop Mode** to revert.
+- **From the CLI:**
+  ```
+  npm run electron -- --overlay
+  ```
+
+### Wallpaper mode (Windows only)
+
+Wallpaper mode embeds the clock behind the desktop icons using a hidden *WorkerW* window.
+
+- **From the app:** choose **Wallpaper Mode** from the settings overlay.
+- **From the CLI:**
+  ```
+  npm run electron -- --wallpaper
+  ```
+
+The PowerShell script `attach-workerw.ps1` locates the WorkerW window and parents the Electron window to it so your icons stay visible. Both modes load a tiny `setting.html` redirect (`index.html?control`) while active so you can tweak settings.
+
 ### Building a single executable
 
 Use the provided helper scripts to build a portable executable:
