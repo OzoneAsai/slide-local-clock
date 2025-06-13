@@ -2,12 +2,11 @@ const { app, BrowserWindow, ipcMain, shell, screen } = require('electron');
 const path = require('path');
 const os = require('os');
 const { execFileSync } = require('child_process');
-const electronWallpaper = require('electron-wallpaper');
 const startServer = require('./server');
 
 let mainWindow;
 let desktopWindow;
-let desktopMode; // 'overlay' or 'wallpaper'
+let desktopMode; // 'overlay'
 let serverInstance;
 let host = '127.0.0.1';
 let port = 3000;
@@ -18,17 +17,6 @@ function getWindowHandle(win) {
     return buf.readUInt32LE(0);
   }
   return Number(buf.readBigUInt64LE(0));
-}
-
-function attachToWorkerW(win) {
-  if (process.platform !== 'win32') return;
-  try {
-    electronWallpaper.attachWindow(win);
-    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    win.setBounds({ x: 0, y: 0, width, height });
-  } catch (err) {
-    console.error('Failed to attach wallpaper window', err);
-  }
 }
 
 function attachToProgman(win) {
@@ -74,8 +62,8 @@ function createWindow() {
   });
 }
 
-function createDesktopWindow(mode) {
-  desktopMode = mode;
+function createDesktopWindow() {
+  desktopMode = 'overlay';
   desktopWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -90,11 +78,7 @@ function createDesktopWindow(mode) {
     },
   });
   desktopWindow.loadURL(`http://${host}:${port}`);
-  if (mode === 'wallpaper') {
-    attachToWorkerW(desktopWindow);
-  } else {
-    attachToProgman(desktopWindow);
-  }
+  attachToProgman(desktopWindow);
   desktopWindow.on('closed', () => {
     desktopWindow = null;
     desktopMode = null;
@@ -111,7 +95,7 @@ ipcMain.handle('open-images-folder', async () => {
 
 ipcMain.handle('start-overlay', () => {
   if (!desktopWindow) {
-    createDesktopWindow('overlay');
+    createDesktopWindow();
   }
   if (mainWindow) {
     mainWindow.setSize(480, 640);
@@ -119,15 +103,6 @@ ipcMain.handle('start-overlay', () => {
   }
 });
 
-ipcMain.handle('start-wallpaper', () => {
-  if (!desktopWindow) {
-    createDesktopWindow('wallpaper');
-  }
-  if (mainWindow) {
-    mainWindow.setSize(480, 640);
-    mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));
-  }
-});
 
 ipcMain.handle('stop-desktop-mode', () => {
   if (desktopWindow) {
@@ -144,13 +119,7 @@ ipcMain.handle('stop-desktop-mode', () => {
 app.whenReady().then(() => {
   createWindow();
   if (process.argv.includes('--overlay')) {
-    createDesktopWindow('overlay');
-    if (mainWindow) {
-      mainWindow.setSize(480, 640);
-      mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));
-    }
-  } else if (process.argv.includes('--wallpaper')) {
-    createDesktopWindow('wallpaper');
+    createDesktopWindow();
     if (mainWindow) {
       mainWindow.setSize(480, 640);
       mainWindow.loadFile(path.join(__dirname, 'public', 'setting.html'));

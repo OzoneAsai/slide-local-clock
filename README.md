@@ -61,19 +61,7 @@ You can place the clock above the desktop, hiding icons. Toggle this from the se
   npm run electron -- --overlay
   ```
 
-### Wallpaper mode (Windows only)
-
-Wallpaper mode embeds the clock behind the desktop icons using the
-[`electron-wallpaper`](https://www.npmjs.com/package/electron-wallpaper)
-module which attaches the Electron window to the hidden *WorkerW* layer.
-
-- **From the app:** choose **Wallpaper Mode** from the settings overlay.
-- **From the CLI:**
-  ```
-  npm run electron -- --wallpaper
-  ```
-
-Both modes load a tiny `setting.html` redirect (`index.html?control`) while
+The overlay loads a tiny `setting.html` redirect (`index.html?control`) while
 active so you can tweak settings.
 
 ### Building a single executable
