@@ -61,6 +61,20 @@
       background-position: center;
       transition: background-image 1s ease-in-out;
     }
+    #bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 25% 20%, rgba(255,255,255,0.07), transparent 32%),
+                  radial-gradient(circle at 70% 10%, rgba(255,255,255,0.05), transparent 26%),
+                  radial-gradient(circle at 40% 80%, rgba(0,0,0,0.25), transparent 38%);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+    }
+    #bg.fallback::after {
+      opacity: 1;
+    }
     .blur {
       filter: blur(8px);
     }
@@ -236,6 +250,34 @@
       min-width: 280px;
       background: linear-gradient(135deg, rgba(28,32,48,0.7), rgba(24,50,74,0.85));
       box-shadow: 0 18px 38px rgba(0,0,0,0.35);
+    }
+
+    #wallpaperHint {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(10, 12, 20, 0.65);
+      backdrop-filter: blur(8px);
+      color: #f8fbff;
+      z-index: 3;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+      font-size: 14px;
+    }
+
+    #wallpaperHint button {
+      background: linear-gradient(135deg, rgba(120,213,255,0.9), rgba(86,139,255,0.9));
+      color: #0a0c14;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
     }
 
     .pomodoro-visual {
@@ -502,6 +544,10 @@
 </head>
 <body>
   <div id="bg"></div>
+  <div id="wallpaperHint" role="status">
+    <span>壁紙フォルダーに画像がありません。設定の「画像設定」から追加してください。</span>
+    <button id="wallpaperHintButton">フォルダーを開く</button>
+  </div>
   <div class="hud">
     <div class="top-row">
       <div id="clock" class="noto-sans-jp-default clock-block">
@@ -1121,6 +1167,22 @@
     const defaultInterval = 500000;
     let bgConfigs = [];
     const bgDiv = document.getElementById('bg');
+    const wallpaperHint = document.getElementById('wallpaperHint');
+    const wallpaperHintButton = document.getElementById('wallpaperHintButton');
+    const fallbackBackground = 'linear-gradient(145deg, #0b1228 0%, #131f3f 38%, #10253d 62%, #101420 100%)';
+
+    function showWallpaperHint() {
+      wallpaperHint.style.display = 'flex';
+      bgDiv.style.backgroundImage = fallbackBackground;
+      bgDiv.classList.add('fallback');
+      bgDiv.classList.remove('blur');
+      document.getElementById('clock').style.textShadow = '0 0 20px rgba(0,0,0,0.8)';
+    }
+
+    function hideWallpaperHint() {
+      wallpaperHint.style.display = 'none';
+      bgDiv.classList.remove('fallback');
+    }
 
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsOverlay = document.getElementById('settingsOverlay');
@@ -1145,6 +1207,10 @@
       } else {
         alert(t('electronRequired'));
       }
+    });
+
+    wallpaperHintButton.addEventListener('click', () => {
+      document.getElementById('openFolderBtn').click();
     });
 
     const imageConfigOverlay = document.getElementById('imageConfigOverlay');
@@ -1352,7 +1418,12 @@
       .then(r => r.json())
       .then(data => {
         backgrounds = data;
-        bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        if (backgrounds.length) {
+          hideWallpaperHint();
+          bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        } else {
+          showWallpaperHint();
+        }
         return fetch('/settings');
       })
       .then(r => r.ok ? r.json() : null)
@@ -1498,6 +1569,7 @@
     }
 
     function setBackground(imgPath) {
+      hideWallpaperHint();
       bgDiv.style.backgroundImage = `url('/static/${imgPath}')`;
       const config = bgConfigs[currentBg];
       if (config.blur) {
