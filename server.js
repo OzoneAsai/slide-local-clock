@@ -8,7 +8,7 @@ const supportedLangs = require('./public/lang-constants');
 function startServer(options = {}) {
   const app = express();
   const port = options.port || process.env.PORT || 3000;
-  const host = options.host || process.env.HOST || '127.0.0.1';
+  const host = options.host || process.env.HOST || '0.0.0.0';
   const appDir = options.appDir || path.join(__dirname, 'public');
   const staticDir =
     options.staticDir || path.join(os.homedir(), 'clock_wallpapers');
@@ -41,6 +41,12 @@ function startServer(options = {}) {
     dateLang: defaultLocale,
     lang: defaultLocale,
     bgConfigs: [],
+    focusMinutes: 25,
+    breakMinutes: 5,
+    longBreakMinutes: 15,
+    longBreakInterval: 4,
+    diaryText: '',
+    soundcloudUrl: '',
   };
   if (fs.existsSync(settingsFile)) {
     try {

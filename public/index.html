@@ -61,37 +61,61 @@
       background-position: center;
       transition: background-image 1s ease-in-out;
     }
+    #bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 25% 20%, rgba(255,255,255,0.07), transparent 32%),
+                  radial-gradient(circle at 70% 10%, rgba(255,255,255,0.05), transparent 26%),
+                  radial-gradient(circle at 40% 80%, rgba(0,0,0,0.25), transparent 38%);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+    }
+    #bg.fallback::after {
+      opacity: 1;
+    }
     .blur {
       filter: blur(8px);
     }
     #clock {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
+      position: relative;
+      top: 0;
+      left: 0;
+      transform: none;
+      text-align: left;
       z-index: 2;
-      text-shadow: 0 0 20px rgba(0,0,0,0.8);
+      text-shadow: 0 12px 28px rgba(0,0,0,0.6);
     }
     #clock h1 {
-      font-size: 80px;
+      font-size: 64px;
       margin: 0;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
     #clock p {
-      font-size: 40px;
-      margin: 0;
+      font-size: 24px;
+      margin: 0 0 6px;
+      opacity: 0.92;
+      letter-spacing: 0.5px;
     }
     #settingsToggle {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+      position: static;
       z-index: 3;
-      background: rgba(0, 0, 0, 0.6);
+      background: linear-gradient(135deg, rgba(64,64,96,0.8), rgba(64,96,160,0.9));
       border: none;
       color: white;
-      padding: 5px 10px;
-      border-radius: 3px;
+      padding: 10px 14px;
+      border-radius: 12px;
       cursor: pointer;
       font-size: 16px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+    #settingsToggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.35);
+      opacity: 0.95;
     }
 
     #settingsOverlay,
@@ -188,15 +212,396 @@
       width: 100%;
       font-size: 14px;
     }
+
+    /* Layout */
+    .hud {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 24px 28px 20px 28px;
+      box-sizing: border-box;
+      backdrop-filter: blur(2px);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .clock-block {
+      padding: 14px 18px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(24,26,38,0.65));
+      box-shadow: 0 18px 38px rgba(0,0,0,0.35);
+      min-width: 320px;
+    }
+
+    .pomodoro-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 20px;
+      min-width: 280px;
+      background: linear-gradient(135deg, rgba(28,32,48,0.7), rgba(24,50,74,0.85));
+      box-shadow: 0 18px 38px rgba(0,0,0,0.35);
+    }
+
+    #wallpaperHint {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(10, 12, 20, 0.65);
+      backdrop-filter: blur(8px);
+      color: #f8fbff;
+      z-index: 3;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+      font-size: 14px;
+    }
+
+    #wallpaperHint button {
+      background: linear-gradient(135deg, rgba(120,213,255,0.9), rgba(86,139,255,0.9));
+      color: #0a0c14;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+    }
+
+    .pomodoro-visual {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      margin: 0 auto;
+    }
+
+    .pomodoro-visual svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .pomodoro-visual circle {
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .pomodoro-base {
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 12;
+    }
+
+    .pomodoro-progress {
+      stroke: #78d5ff;
+      stroke-width: 12;
+      transition: stroke-dashoffset 0.35s ease;
+    }
+
+    .pomodoro-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 4px;
+    }
+
+    #pomodoroState {
+      font-size: 16px;
+      letter-spacing: 0.6px;
+      opacity: 0.85;
+    }
+
+    #pomodoroTime {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    #pomodoroCycle {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    .pomodoro-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .pomodoro-actions button {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      min-width: 90px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .pomodoro-actions button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(0,0,0,0.35);
+      opacity: 0.95;
+    }
+
+    .bottom-row {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .player-panel {
+      flex: 1 1 360px;
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(0,0,0,0.55), rgba(24,26,38,0.7));
+      box-shadow: 0 18px 32px rgba(0,0,0,0.35);
+      backdrop-filter: blur(4px);
+    }
+
+    .player-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 200px;
+    }
+
+    .player-label {
+      font-size: 13px;
+      opacity: 0.7;
+      letter-spacing: 0.5px;
+    }
+
+    #soundcloudNow {
+      font-size: 16px;
+      font-weight: 600;
+      text-shadow: 0 8px 16px rgba(0,0,0,0.35);
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .icon-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 28px rgba(0,0,0,0.4);
+      opacity: 0.95;
+    }
+
+    .nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-buttons button {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.14);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .nav-buttons button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 28px rgba(0,0,0,0.4);
+      opacity: 0.95;
+    }
+
+    #diaryOverlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 340px;
+      height: 100%;
+      background: rgba(12, 14, 20, 0.92);
+      color: white;
+      z-index: 4;
+      padding: 18px;
+      box-sizing: border-box;
+      box-shadow: -16px 0 32px rgba(0,0,0,0.35);
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    #diaryOverlay.open {
+      display: flex;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    #diaryText {
+      flex: 1;
+      width: 100%;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 12px;
+      resize: none;
+      min-height: 260px;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: inset 0 8px 16px rgba(0,0,0,0.25);
+    }
+
+    #diarySave {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(120,213,255,0.9), rgba(86,139,255,0.9));
+      color: #0a0c14;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #diarySave:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 28px rgba(0,0,0,0.45);
+    }
+
+    #diaryStatus {
+      font-size: 12px;
+      opacity: 0.75;
+    }
+
+    #soundcloudEmbed {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      width: 420px;
+      height: 90px;
+      border: none;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 18px 32px rgba(0,0,0,0.35);
+      display: none;
+      z-index: 3;
+    }
+
+    .sectionDescription {
+      font-size: 12px;
+      opacity: 0.75;
+      margin: 4px 0 10px;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
   <div id="bg"></div>
-  <div id="clock" class="noto-sans-jp-default">
-    <h1 id="time">--:--:--</h1>
-    <p id="date">----/--/--</p>
+  <div id="wallpaperHint" role="status">
+    <span>壁紙フォルダーに画像がありません。設定の「画像設定」から追加してください。</span>
+    <button id="wallpaperHintButton">フォルダーを開く</button>
   </div>
-  <button id="settingsToggle">⚙️</button>
+  <div class="hud">
+    <div class="top-row">
+      <div id="clock" class="noto-sans-jp-default clock-block">
+        <p id="date">----/--/--</p>
+        <h1 id="time">--:--:--</h1>
+      </div>
+      <div class="pomodoro-card">
+        <div class="pomodoro-visual">
+          <svg viewBox="0 0 120 120">
+            <circle class="pomodoro-base" cx="60" cy="60" r="54"></circle>
+            <circle id="pomodoroProgress" class="pomodoro-progress" cx="60" cy="60" r="54" stroke-dasharray="339.292" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="pomodoro-center">
+            <div id="pomodoroState">Focus</div>
+            <div id="pomodoroTime">25:00</div>
+            <div id="pomodoroCycle">Session 1</div>
+          </div>
+        </div>
+        <div class="pomodoro-actions">
+          <button id="pomodoroToggle">Start</button>
+          <button id="pomodoroSkip">Skip</button>
+          <button id="pomodoroReset">Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-row">
+      <div class="player-panel">
+        <div class="player-meta">
+          <div class="player-label">SoundCloud</div>
+          <div id="soundcloudNow">Not connected</div>
+        </div>
+        <div class="player-controls">
+          <button class="icon-button" id="soundcloudToggle" title="Play / Pause">▶</button>
+          <button class="icon-button" id="soundcloudStop" title="Stop">■</button>
+        </div>
+      </div>
+      <div class="nav-buttons">
+        <button id="diaryBtn" title="Diary">📔</button>
+        <button id="settingsToggle" title="Settings">⚙️</button>
+      </div>
+    </div>
+  </div>
+  <iframe id="soundcloudEmbed" allow="autoplay"></iframe>
+
+  <div id="diaryOverlay">
+    <div class="panel-header">
+      <span>Diary</span>
+      <button class="icon-button" id="diaryClose" aria-label="Close diary">✖</button>
+    </div>
+    <div class="sectionDescription">気軽に日記を残せる軽量メモ。保存すると設定と一緒にローカルに保持されます。</div>
+    <textarea id="diaryText" placeholder="今日の気分やタスクをメモ..." aria-label="Diary text"></textarea>
+    <button id="diarySave">保存</button>
+    <div id="diaryStatus"></div>
+  </div>
 
   <div id="settingsOverlay">
     <div id="settingsOverlayHeader" data-i18n="settingsTitle">Settings</div>
@@ -247,6 +652,23 @@
       <div class="sectionTitle" data-i18n="dateFormatSection">Date Format</div>
       <label for="dateFormatSelect" data-i18n="dateFormatLabel">Format:</label>
       <select id="dateFormatSelect"></select>
+
+      <div class="sectionTitle">Pomodoro</div>
+      <div class="sectionDescription">集中/休憩の長さをカスタマイズできます。</div>
+      <label for="focusMinutes">集中 (分):</label>
+      <input type="number" id="focusMinutes" min="1" value="25">
+      <label for="breakMinutes">休憩 (分):</label>
+      <input type="number" id="breakMinutes" min="1" value="5">
+      <label for="longBreakMinutes">ロングブレイク (分):</label>
+      <input type="number" id="longBreakMinutes" min="5" value="15">
+      <label for="longBreakInterval">ロングブレイクまでのサイクル数:</label>
+      <input type="number" id="longBreakInterval" min="1" value="4">
+
+      <div class="sectionTitle">SoundCloud</div>
+      <div class="sectionDescription">SoundCloudのトラック/プレイリストURLを貼り付けて、プレイヤーを連携します。</div>
+      <label for="soundcloudUrlInput">SoundCloud URL</label>
+      <input type="url" id="soundcloudUrlInput" placeholder="https://soundcloud.com/...">
+      <button id="loadSoundcloudBtn">連携する</button>
 
       <div class="sectionTitle" data-i18n="controlsSection">Controls</div>
       <div class="controlButtons">
@@ -513,6 +935,21 @@
     let currentTimeFormat = 'HH:mm:ss';
     let currentDateFormat = 'long';
     let currentDateRatio = 0.5;
+    const pomodoroDefaults = {
+      focusMinutes: 25,
+      breakMinutes: 5,
+      longBreakMinutes: 15,
+      longBreakInterval: 4,
+    };
+    let pomodoroConfig = { ...pomodoroDefaults };
+    let pomodoroState = 'focus';
+    let pomodoroRemaining = pomodoroConfig.focusMinutes * 60;
+    let pomodoroTimerId = null;
+    let pomodoroSession = 1;
+    let diaryTextValue = '';
+    let soundcloudUrl = '';
+    let soundcloudWidget = null;
+    let soundcloudReady = null;
 
     function formatTime(date, fmt) {
       const pad = (n) => n.toString().padStart(2, '0');
@@ -606,8 +1043,8 @@
     function updateTextSize(multiplier, ratio) {
       const timeElem = document.getElementById('time');
       const dateElem = document.getElementById('date');
-      timeElem.style.fontSize = (80 * multiplier) + 'px';
-      dateElem.style.fontSize = (80 * multiplier * ratio) + 'px';
+      timeElem.style.fontSize = (64 * multiplier) + 'px';
+      dateElem.style.fontSize = (64 * multiplier * ratio * 0.45) + 'px';
     }
     updateTextSize(parseFloat(document.getElementById('charSizeMultiplier').value),
                    parseFloat(document.getElementById('dateSizeRatio').value));
@@ -624,12 +1061,128 @@
       saveSettings();
     });
 
+    const pomodoroProgress = document.getElementById('pomodoroProgress');
+    const pomodoroStateLabel = document.getElementById('pomodoroState');
+    const pomodoroTimeLabel = document.getElementById('pomodoroTime');
+    const pomodoroCycleLabel = document.getElementById('pomodoroCycle');
+    const pomodoroToggle = document.getElementById('pomodoroToggle');
+    const pomodoroSkip = document.getElementById('pomodoroSkip');
+    const pomodoroReset = document.getElementById('pomodoroReset');
+    const pomodoroCircumference = 2 * Math.PI * 54;
+
+    function getPhaseDuration(phase) {
+      if (phase === 'focus') return pomodoroConfig.focusMinutes * 60;
+      if (phase === 'longBreak') return pomodoroConfig.longBreakMinutes * 60;
+      return pomodoroConfig.breakMinutes * 60;
+    }
+
+    function updatePomodoroUI() {
+      const total = getPhaseDuration(pomodoroState) || 1;
+      const ratio = 1 - (pomodoroRemaining / total);
+      pomodoroProgress.style.strokeDasharray = pomodoroCircumference;
+      pomodoroProgress.style.strokeDashoffset = pomodoroCircumference * ratio;
+      if (pomodoroState === 'focus') {
+        pomodoroProgress.style.stroke = '#78d5ff';
+        pomodoroStateLabel.textContent = 'Focus';
+      } else if (pomodoroState === 'longBreak') {
+        pomodoroProgress.style.stroke = '#f6b267';
+        pomodoroStateLabel.textContent = 'Long Break';
+      } else {
+        pomodoroProgress.style.stroke = '#9ae19a';
+        pomodoroStateLabel.textContent = 'Break';
+      }
+      const minutes = Math.floor(pomodoroRemaining / 60).toString().padStart(2, '0');
+      const seconds = Math.floor(pomodoroRemaining % 60).toString().padStart(2, '0');
+      pomodoroTimeLabel.textContent = `${minutes}:${seconds}`;
+      pomodoroCycleLabel.textContent = `Session ${pomodoroSession}`;
+      pomodoroToggle.textContent = pomodoroTimerId ? 'Pause' : 'Start';
+    }
+
+    function resetPomodoroState(toPhase = 'focus') {
+      pomodoroState = toPhase;
+      pomodoroRemaining = getPhaseDuration(pomodoroState);
+      updatePomodoroUI();
+    }
+
+    function startPomodoro() {
+      if (pomodoroTimerId) return;
+      pomodoroTimerId = setInterval(() => {
+        pomodoroRemaining = Math.max(0, pomodoroRemaining - 1);
+        if (pomodoroRemaining === 0) {
+          if (pomodoroState === 'focus') {
+            pomodoroState = (pomodoroSession % pomodoroConfig.longBreakInterval === 0) ? 'longBreak' : 'break';
+          } else {
+            pomodoroSession += 1;
+            pomodoroState = 'focus';
+          }
+          pomodoroRemaining = getPhaseDuration(pomodoroState);
+        }
+        updatePomodoroUI();
+      }, 1000);
+      updatePomodoroUI();
+    }
+
+    function pausePomodoro() {
+      if (pomodoroTimerId) {
+        clearInterval(pomodoroTimerId);
+        pomodoroTimerId = null;
+        updatePomodoroUI();
+      }
+    }
+
+    pomodoroToggle.addEventListener('click', () => {
+      if (pomodoroTimerId) {
+        pausePomodoro();
+      } else {
+        startPomodoro();
+      }
+      saveSettings();
+    });
+
+    pomodoroSkip.addEventListener('click', () => {
+      pausePomodoro();
+      if (pomodoroState === 'focus') {
+        pomodoroState = (pomodoroSession % pomodoroConfig.longBreakInterval === 0) ? 'longBreak' : 'break';
+      } else {
+        pomodoroSession += 1;
+        pomodoroState = 'focus';
+      }
+      pomodoroRemaining = getPhaseDuration(pomodoroState);
+      updatePomodoroUI();
+      saveSettings();
+    });
+
+    pomodoroReset.addEventListener('click', () => {
+      pausePomodoro();
+      pomodoroSession = 1;
+      resetPomodoroState('focus');
+      saveSettings();
+    });
+
+    updatePomodoroUI();
+
     let backgrounds = [];
     let currentBg = 0;
     let slideTimeoutId = null;
     const defaultInterval = 500000;
     let bgConfigs = [];
     const bgDiv = document.getElementById('bg');
+    const wallpaperHint = document.getElementById('wallpaperHint');
+    const wallpaperHintButton = document.getElementById('wallpaperHintButton');
+    const fallbackBackground = 'linear-gradient(145deg, #0b1228 0%, #131f3f 38%, #10253d 62%, #101420 100%)';
+
+    function showWallpaperHint() {
+      wallpaperHint.style.display = 'flex';
+      bgDiv.style.backgroundImage = fallbackBackground;
+      bgDiv.classList.add('fallback');
+      bgDiv.classList.remove('blur');
+      document.getElementById('clock').style.textShadow = '0 0 20px rgba(0,0,0,0.8)';
+    }
+
+    function hideWallpaperHint() {
+      wallpaperHint.style.display = 'none';
+      bgDiv.classList.remove('fallback');
+    }
 
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsOverlay = document.getElementById('settingsOverlay');
@@ -654,6 +1207,10 @@
       } else {
         alert(t('electronRequired'));
       }
+    });
+
+    wallpaperHintButton.addEventListener('click', () => {
+      document.getElementById('openFolderBtn').click();
     });
 
     const imageConfigOverlay = document.getElementById('imageConfigOverlay');
@@ -735,11 +1292,138 @@
       saveSettings();
     });
 
+    const focusMinutesInput = document.getElementById('focusMinutes');
+    const breakMinutesInput = document.getElementById('breakMinutes');
+    const longBreakMinutesInput = document.getElementById('longBreakMinutes');
+    const longBreakIntervalInput = document.getElementById('longBreakInterval');
+
+    function updatePomodoroConfig() {
+      pomodoroConfig.focusMinutes = Math.max(1, parseInt(focusMinutesInput.value, 10) || pomodoroDefaults.focusMinutes);
+      pomodoroConfig.breakMinutes = Math.max(1, parseInt(breakMinutesInput.value, 10) || pomodoroDefaults.breakMinutes);
+      pomodoroConfig.longBreakMinutes = Math.max(1, parseInt(longBreakMinutesInput.value, 10) || pomodoroDefaults.longBreakMinutes);
+      pomodoroConfig.longBreakInterval = Math.max(1, parseInt(longBreakIntervalInput.value, 10) || pomodoroDefaults.longBreakInterval);
+      if (!pomodoroTimerId) {
+        resetPomodoroState(pomodoroState);
+      }
+      saveSettings();
+    }
+
+    focusMinutesInput.addEventListener('change', updatePomodoroConfig);
+    breakMinutesInput.addEventListener('change', updatePomodoroConfig);
+    longBreakMinutesInput.addEventListener('change', updatePomodoroConfig);
+    longBreakIntervalInput.addEventListener('change', updatePomodoroConfig);
+
+    const diaryOverlay = document.getElementById('diaryOverlay');
+    const diaryBtn = document.getElementById('diaryBtn');
+    const diaryClose = document.getElementById('diaryClose');
+    const diaryText = document.getElementById('diaryText');
+    const diarySave = document.getElementById('diarySave');
+    const diaryStatus = document.getElementById('diaryStatus');
+
+    diaryBtn.addEventListener('click', () => {
+      diaryOverlay.classList.toggle('open');
+    });
+
+    diaryClose.addEventListener('click', () => {
+      diaryOverlay.classList.remove('open');
+    });
+
+    diarySave.addEventListener('click', () => {
+      diaryTextValue = diaryText.value;
+      diaryStatus.textContent = '保存しました';
+      saveSettings();
+      setTimeout(() => diaryStatus.textContent = '', 2000);
+    });
+
+    diaryText.addEventListener('input', () => {
+      diaryTextValue = diaryText.value;
+    });
+
+    const soundcloudUrlInput = document.getElementById('soundcloudUrlInput');
+    const soundcloudToggleBtn = document.getElementById('soundcloudToggle');
+    const soundcloudStopBtn = document.getElementById('soundcloudStop');
+    const soundcloudStatus = document.getElementById('soundcloudNow');
+    const soundcloudEmbed = document.getElementById('soundcloudEmbed');
+    const loadSoundcloudBtn = document.getElementById('loadSoundcloudBtn');
+
+    function updateSoundcloudStatus(text) {
+      soundcloudStatus.textContent = text || 'Not connected';
+    }
+
+    function ensureSoundcloudSDK() {
+      if (soundcloudReady) return soundcloudReady;
+      soundcloudReady = new Promise((resolve) => {
+        if (window.SC && window.SC.Widget) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://w.soundcloud.com/player/api.js';
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+      });
+      return soundcloudReady;
+    }
+
+    function refreshSoundTitle() {
+      if (soundcloudWidget && soundcloudWidget.getCurrentSound) {
+        soundcloudWidget.getCurrentSound((sound) => {
+          if (sound && sound.title) {
+            updateSoundcloudStatus(sound.title);
+          }
+        });
+      }
+    }
+
+    function loadSoundcloudWidget(url) {
+      if (!url) return;
+      soundcloudUrl = url;
+      soundcloudEmbed.style.display = 'block';
+      ensureSoundcloudSDK().then(() => {
+        soundcloudEmbed.src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&auto_play=false&show_comments=false&visual=false`;
+        soundcloudWidget = window.SC.Widget(soundcloudEmbed);
+        soundcloudWidget.bind(window.SC.Widget.Events.READY, () => {
+          updateSoundcloudStatus('Ready to play');
+          refreshSoundTitle();
+        });
+        soundcloudWidget.bind(window.SC.Widget.Events.PLAY, refreshSoundTitle);
+        soundcloudWidget.bind(window.SC.Widget.Events.PAUSE, refreshSoundTitle);
+      });
+    }
+
+    loadSoundcloudBtn.addEventListener('click', () => {
+      const url = soundcloudUrlInput.value.trim();
+      if (!url) return;
+      loadSoundcloudWidget(url);
+      saveSettings();
+    });
+
+    soundcloudToggleBtn.addEventListener('click', () => {
+      if (soundcloudWidget) {
+        soundcloudWidget.toggle();
+      } else if (soundcloudUrl) {
+        loadSoundcloudWidget(soundcloudUrl);
+      }
+    });
+
+    soundcloudStopBtn.addEventListener('click', () => {
+      if (soundcloudWidget) {
+        soundcloudWidget.pause();
+        soundcloudWidget.seekTo(0);
+        updateSoundcloudStatus('Stopped');
+      }
+    });
+
     fetch('/backgrounds')
       .then(r => r.json())
       .then(data => {
         backgrounds = data;
-        bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        if (backgrounds.length) {
+          hideWallpaperHint();
+          bgConfigs = backgrounds.map(() => ({ interval: defaultInterval, blur: false, gradientBlur: true }));
+        } else {
+          showWallpaperHint();
+        }
         return fetch('/settings');
       })
       .then(r => r.ok ? r.json() : null)
@@ -777,10 +1461,38 @@
           } else {
             document.getElementById('langSelect').value = currentLang;
           }
+          if (typeof conf.focusMinutes === 'number') {
+            pomodoroConfig.focusMinutes = conf.focusMinutes;
+            focusMinutesInput.value = conf.focusMinutes;
+          }
+          if (typeof conf.breakMinutes === 'number') {
+            pomodoroConfig.breakMinutes = conf.breakMinutes;
+            breakMinutesInput.value = conf.breakMinutes;
+          }
+          if (typeof conf.longBreakMinutes === 'number') {
+            pomodoroConfig.longBreakMinutes = conf.longBreakMinutes;
+            longBreakMinutesInput.value = conf.longBreakMinutes;
+          }
+          if (typeof conf.longBreakInterval === 'number') {
+            pomodoroConfig.longBreakInterval = conf.longBreakInterval;
+            longBreakIntervalInput.value = conf.longBreakInterval;
+          }
+          if (typeof conf.diaryText === 'string') {
+            diaryTextValue = conf.diaryText;
+            diaryText.value = conf.diaryText;
+          }
+          if (typeof conf.soundcloudUrl === 'string') {
+            soundcloudUrl = conf.soundcloudUrl;
+            soundcloudUrlInput.value = conf.soundcloudUrl;
+            if (conf.soundcloudUrl) {
+              loadSoundcloudWidget(conf.soundcloudUrl);
+            }
+          }
           if (conf.bgConfigs && conf.bgConfigs.length === backgrounds.length) {
             bgConfigs = conf.bgConfigs;
           }
         }
+        resetPomodoroState(pomodoroState);
         buildImageConfigOverlay();
         if (backgrounds.length) {
           setBackground(backgrounds[currentBg]);
@@ -857,6 +1569,7 @@
     }
 
     function setBackground(imgPath) {
+      hideWallpaperHint();
       bgDiv.style.backgroundImage = `url('/static/${imgPath}')`;
       const config = bgConfigs[currentBg];
       if (config.blur) {
@@ -902,6 +1615,12 @@
         dateFormat: document.getElementById('dateFormatSelect').value,
         lang: currentLang,
         bgConfigs,
+        focusMinutes: pomodoroConfig.focusMinutes,
+        breakMinutes: pomodoroConfig.breakMinutes,
+        longBreakMinutes: pomodoroConfig.longBreakMinutes,
+        longBreakInterval: pomodoroConfig.longBreakInterval,
+        diaryText: diaryTextValue,
+        soundcloudUrl,
       };
     }
 
