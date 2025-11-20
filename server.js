@@ -41,6 +41,10 @@ function startServer(options = {}) {
     dateLang: defaultLocale,
     lang: defaultLocale,
     bgConfigs: [],
+    interval: 60,
+    focus: 25,
+    break: 5,
+    soundUrl: '',
   };
   if (fs.existsSync(settingsFile)) {
     try {
