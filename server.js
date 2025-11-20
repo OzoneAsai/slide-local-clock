@@ -32,7 +32,7 @@ function startServer(options = {}) {
   }
   const defaultLocale = matchLang(osLocale.sync());
 
-  let settings = {
+  const defaultSettings = {
     font: 'noto-sans-jp-default',
     charSizeMultiplier: 1.0,
     dateSizeRatio: 0.5,
@@ -41,11 +41,21 @@ function startServer(options = {}) {
     dateLang: defaultLocale,
     lang: defaultLocale,
     bgConfigs: [],
+    wallpaperInterval: 15000,
+    soundcloudUrl: '',
+    soundcloudAutoplay: false,
+    pomodoro: { focus: 25, break: 5 },
   };
+
+  let settings = { ...defaultSettings };
   if (fs.existsSync(settingsFile)) {
     try {
       const loaded = JSON.parse(fs.readFileSync(settingsFile, 'utf-8'));
-      Object.assign(settings, loaded);
+      settings = {
+        ...defaultSettings,
+        ...loaded,
+        pomodoro: { ...defaultSettings.pomodoro, ...(loaded.pomodoro || {}) },
+      };
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
