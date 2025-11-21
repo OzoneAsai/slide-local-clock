@@ -24,6 +24,7 @@ function startServer(options = {}) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
   const settingsFile = path.join(dataDir, 'settings.json');
+  const diaryFile = path.join(dataDir, 'diary.json');
   function matchLang(locale) {
     if (!locale) return 'en-US';
     const norm = locale.replace('_','-');
@@ -43,10 +44,16 @@ function startServer(options = {}) {
     bgConfigs: [],
     slideshowInterval: 30,
     soundcloudUrl: '',
+    soundcloudPlaylists: [],
     pomodoro: { focus: 25, break: 5 },
     diary: '',
     uiMode: 'study',
     studyDimBackground: true,
+    studyDimStrength: 0.65,
+    studyTimeFormat: 'HH:mm',
+    studyDateFormat: 'numeric',
+    studyDateLang: 'ja-JP',
+    studyDatePosition: 'above',
   };
   if (fs.existsSync(settingsFile)) {
     try {
@@ -54,6 +61,15 @@ function startServer(options = {}) {
       Object.assign(settings, loaded);
     } catch (e) {
       console.error('Failed to load settings:', e);
+    }
+  }
+
+  let diaryEntries = [];
+  if (fs.existsSync(diaryFile)) {
+    try {
+      diaryEntries = JSON.parse(fs.readFileSync(diaryFile, 'utf-8'));
+    } catch (e) {
+      console.error('Failed to load diary entries:', e);
     }
   }
 
@@ -80,6 +96,31 @@ function startServer(options = {}) {
         res.status(500).end();
       } else {
         res.json({ ok: true });
+      }
+    });
+  });
+
+  app.get('/diary', (req, res) => {
+    res.json({ entries: diaryEntries });
+  });
+
+  app.post('/diary', (req, res) => {
+    const text = (req.body && req.body.text) || '';
+    if (!text.trim()) {
+      return res.status(400).json({ error: 'Empty entry' });
+    }
+    const entry = {
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      text,
+    };
+    diaryEntries.unshift(entry);
+    fs.writeFile(diaryFile, JSON.stringify(diaryEntries, null, 2), err => {
+      if (err) {
+        console.error('Failed to save diary entries:', err);
+        res.status(500).end();
+      } else {
+        res.json({ ok: true, entry });
       }
     });
   });

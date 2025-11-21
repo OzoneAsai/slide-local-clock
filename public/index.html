@@ -16,12 +16,13 @@
       --muted: #9fb0c8;
       --card-radius: 18px;
       --shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+      --scrim-strength: 0.65;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Zen Kaku Gothic New', 'Space Grotesk', sans-serif; color: var(--text); background: #05070c; }
     #bg { position: fixed; inset: 0; background-size: cover; background-position: center; transition: background-image 1s ease-in-out, filter 0.6s ease; }
     .blur { filter: blur(8px); }
-    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,0.45) 0%, rgba(5,7,12,0.75) 100%); pointer-events: none; }
+    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,calc(0.2 * var(--scrim-strength))) 0%, rgba(5,7,12,calc(0.75 * var(--scrim-strength))) 100%); pointer-events: none; transition: background 0.2s ease; }
     #scrim.hidden { display: none; }
     .hidden { display: none !important; }
 
@@ -30,6 +31,8 @@
     .hud { width: 100%; height: 100%; padding: 32px; display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: 1fr; }
     .top-row { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
     .clock-card { background: var(--glass); border-radius: var(--card-radius); padding: 18px 22px; backdrop-filter: saturate(120%); box-shadow: var(--shadow); min-width: 240px; }
+    .clock-stack { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .clock-stack.date-below { flex-direction: column-reverse; }
     .clock-time { font-size: 56px; font-weight: 700; letter-spacing: 2px; margin: 0; }
     .clock-date { margin: 6px 0 0; font-size: 18px; color: var(--muted); }
     .pomodoro-card { background: var(--glass); border-radius: var(--card-radius); padding: 16px 20px; display: flex; align-items: center; gap: 18px; min-width: 280px; box-shadow: var(--shadow); }
@@ -58,6 +61,10 @@
     .window.open { display: flex; }
     .diary-text { width: 100%; min-height: 220px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04); color: var(--text); padding: 12px; resize: vertical; }
     .window small { color: var(--muted); }
+    .diary-history { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .diary-entry { padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
+    .diary-entry time { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .diary-entry:hover { background: rgba(255,255,255,0.08); }
     .settings-sections { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-right: 4px; }
     .setting-card { background: rgba(255,255,255,0.04); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.06); }
     .setting-card h3 { margin: 0 0 8px; font-size: 16px; letter-spacing: 0.4px; }
@@ -70,6 +77,11 @@
     .inline-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .mini-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.08); color: var(--text); cursor: pointer; font-weight: 600; letter-spacing: 0.2px; }
     .mini-btn:hover { background: rgba(255,255,255,0.12); }
+    .mini-btn.secondary { color: var(--muted); }
+    .playlist-list { display: flex; flex-direction: column; gap: 8px; }
+    .playlist-row { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+    .playlist-row .title { flex: 1; font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .playlist-row .actions { display: flex; gap: 6px; }
     .soundcloud-frame { width: 100%; border: none; border-radius: 12px; height: 120px; background: rgba(255,255,255,0.04); display: none; }
     .soundcloud-frame.active { display: block; }
     .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #6fffba; box-shadow: 0 0 8px rgba(111,255,186,0.7); }
@@ -118,9 +130,11 @@
     <div class="hud">
       <div class="top-row">
         <div class="clock-card">
-          <p class="clock-date" id="studyWeekday">-- --</p>
-          <h1 class="clock-time" id="studyTime">--:--</h1>
-          <p class="clock-date" id="studyDate">--/--/--</p>
+          <div class="clock-stack" id="studyClockStack">
+            <p class="clock-date" id="studyWeekday">-- --</p>
+            <h1 class="clock-time" id="studyTime">--:--</h1>
+            <p class="clock-date" id="studyDate">--/--/--</p>
+          </div>
         </div>
         <div class="pomodoro-card">
           <div class="pomodoro-visual">
@@ -164,6 +178,7 @@
         <button class="mini-btn" id="saveDiary">Save note</button>
         <small id="diarySaved">Not saved</small>
       </div>
+      <div class="diary-history" id="diaryHistory"></div>
     </div>
 
     <div class="window" id="settingsWindow">
@@ -183,6 +198,36 @@
           </div>
           <div class="field">
             <label><input type="checkbox" id="studyDimToggle"> Dim background on Study UI</label>
+          </div>
+          <div class="field">
+            <label>Dim strength</label>
+            <input type="range" id="studyDimStrength" min="0" max="1" step="0.05" value="0.65">
+          </div>
+        </div>
+        <div class="setting-card">
+          <h3>Study Clock</h3>
+          <div class="field">
+            <label>Time format</label>
+            <input type="text" id="studyTimeFormat" placeholder="HH:mm">
+          </div>
+          <div class="field">
+            <label>Date language</label>
+            <select id="studyDateLang">
+              <option value="ja-JP">日本語</option>
+              <option value="en-GB">English (GB)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Date format</label>
+            <select id="studyDateFormat"></select>
+          </div>
+          <div class="field">
+            <label>Date placement</label>
+            <select id="studyDatePosition">
+              <option value="above">Above time</option>
+              <option value="below">Below time</option>
+              <option value="hidden">Hide date line</option>
+            </select>
           </div>
         </div>
         <div class="setting-card">
@@ -206,6 +251,21 @@
           </div>
           <div class="inline-controls">
             <button class="mini-btn" id="applySoundcloud">Apply</button>
+          </div>
+          <div class="field">
+            <label>Saved playlists</label>
+            <div id="playlistList" class="playlist-list"></div>
+          </div>
+          <div class="field">
+            <label>Playlist name</label>
+            <input type="text" id="playlistName" placeholder="Lo-fi, Ambient...">
+          </div>
+          <div class="field">
+            <label>Playlist URL</label>
+            <input type="url" id="playlistUrl" placeholder="https://soundcloud.com/...">
+          </div>
+          <div class="inline-controls">
+            <button class="mini-btn" id="addPlaylist">Add playlist</button>
           </div>
           <iframe id="soundcloudPlayer" class="soundcloud-frame" allow="autoplay"></iframe>
         </div>
@@ -354,10 +414,16 @@
       bgConfigs: [],
       slideshowInterval: 30,
       soundcloudUrl: '',
+      soundcloudPlaylists: [],
       pomodoro: { focus: 25, break: 5 },
       diary: '',
       uiMode: 'study',
-      studyDimBackground: true
+      studyDimBackground: true,
+      studyDimStrength: 0.65,
+      studyTimeFormat: 'HH:mm',
+      studyDateFormat: 'numeric',
+      studyDateLang: 'ja-JP',
+      studyDatePosition: 'above'
     };
 
     const state = {
@@ -365,7 +431,8 @@
       currentBg: 0,
       slideTimeoutId: null,
       settings: { ...defaultSettings },
-      pomodoro: { mode: 'focus', remaining: 25 * 60, running: false, timer: null }
+      pomodoro: { mode: 'focus', remaining: 25 * 60, running: false, timer: null },
+      diaryEntries: []
     };
 
     function zeroPad(num) { return num.toString().padStart(2, '0'); }
@@ -397,16 +464,52 @@
       dateStyleCodes.forEach(code => { const opt = document.createElement('option'); opt.value = code; opt.textContent = formatDate(sample, state.settings.dateLang, code); select.appendChild(opt); });
       if (prev) select.value = prev;
     }
-    function applyTranslations() { document.documentElement.lang = state.settings.lang; document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (translations[key]) { el.textContent = t(key); } }); buildDateFormatOptions(); updateClassicClock(); }
+    function buildStudyDateFormatOptions() {
+      const select = document.getElementById('studyDateFormat');
+      if (!select) return;
+      const prev = select.value;
+      select.innerHTML = '';
+      const sample = new Date(2025, 5, 8);
+      dateStyleCodes.forEach(code => {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = formatDate(sample, state.settings.studyDateLang || 'ja-JP', code);
+        select.appendChild(opt);
+      });
+      if (prev) select.value = prev;
+    }
+    function applyTranslations() { document.documentElement.lang = state.settings.lang; document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (translations[key]) { el.textContent = t(key); } }); buildDateFormatOptions(); buildStudyDateFormatOptions(); updateClassicClock(); }
 
     function updateStudyClock() {
       const now = new Date();
-      document.getElementById('studyTime').textContent = `${zeroPad(now.getHours())}:${zeroPad(now.getMinutes())}`;
-      document.getElementById('studyWeekday').textContent = now.toLocaleDateString(undefined, { weekday: 'short' });
-      document.getElementById('studyDate').textContent = now.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+      const timeFmt = state.settings.studyTimeFormat || 'HH:mm';
+      const dateLang = state.settings.studyDateLang || 'ja-JP';
+      const dateFmt = state.settings.studyDateFormat || 'numeric';
+      const placement = state.settings.studyDatePosition || 'above';
+      const weekdayEl = document.getElementById('studyWeekday');
+      const dateEl = document.getElementById('studyDate');
+      const stack = document.getElementById('studyClockStack');
+      document.getElementById('studyTime').textContent = formatTime(now, timeFmt);
+      weekdayEl.textContent = new Intl.DateTimeFormat(dateLang, { weekday: 'short' }).format(now);
+      dateEl.textContent = formatDate(now, dateLang, dateFmt);
+
+      if (placement === 'hidden') {
+        weekdayEl.style.display = 'none';
+        dateEl.style.display = 'none';
+        stack.classList.remove('date-below');
+      } else {
+        weekdayEl.style.display = '';
+        dateEl.style.display = '';
+        if (placement === 'below') stack.classList.add('date-below'); else stack.classList.remove('date-below');
+      }
     }
     function updateClassicClock() { const now = new Date(); document.getElementById('classicTime').textContent = formatTime(now, state.settings.timeFormat || 'HH:mm:ss'); document.getElementById('classicDate').textContent = formatDate(now, state.settings.dateLang || 'en-US', state.settings.dateFormat || 'numeric'); }
-    function updateScrim() { const scrim = document.getElementById('scrim'); if (state.settings.studyDimBackground) scrim.classList.remove('hidden'); else scrim.classList.add('hidden'); }
+    function updateScrim() {
+      const scrim = document.getElementById('scrim');
+      const strength = state.settings.studyDimBackground ? (state.settings.studyDimStrength ?? 0.65) : 0;
+      document.documentElement.style.setProperty('--scrim-strength', strength);
+      if (strength > 0.01) scrim.classList.remove('hidden'); else scrim.classList.add('hidden');
+    }
 
     function setBackground(imgPath) {
       const bgDiv = document.getElementById('bg');
@@ -468,9 +571,16 @@
       document.getElementById('diaryText').value = state.settings.diary || '';
       document.getElementById('uiModeSelect').value = state.settings.uiMode || 'study';
       document.getElementById('studyDimToggle').checked = !!state.settings.studyDimBackground;
+      document.getElementById('studyDimStrength').value = state.settings.studyDimStrength ?? 0.65;
+      document.getElementById('studyTimeFormat').value = state.settings.studyTimeFormat || 'HH:mm';
+      document.getElementById('studyDateLang').value = state.settings.studyDateLang || 'ja-JP';
+      buildStudyDateFormatOptions();
+      document.getElementById('studyDateFormat').value = state.settings.studyDateFormat || 'numeric';
+      document.getElementById('studyDatePosition').value = state.settings.studyDatePosition || 'above';
       state.pomodoro.remaining = state.settings.pomodoro.focus * 60;
       updatePomodoroDisplay();
       if (state.settings.soundcloudUrl) { setSoundcloudSource(state.settings.soundcloudUrl); }
+      renderPlaylists();
       document.getElementById('fontSelect').value = state.settings.font;
       document.getElementById('charSizeMultiplier').value = state.settings.charSizeMultiplier;
       document.getElementById('dateSizeRatio').value = state.settings.dateSizeRatio;
@@ -484,6 +594,7 @@
       updateScrim();
       showUIMode(state.settings.uiMode);
       applyTranslations();
+      updateStudyClock();
     }
 
     function setSoundcloudSource(url) {
@@ -492,6 +603,85 @@
       const embed = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23c2d5ff&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false`;
       player.src = embed;
       player.classList.add('active');
+    }
+    function renderPlaylists() {
+      const list = document.getElementById('playlistList');
+      if (!list) return;
+      list.innerHTML = '';
+      const items = state.settings.soundcloudPlaylists || [];
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.textContent = 'No playlists saved yet.';
+        empty.style.color = 'var(--muted)';
+        list.appendChild(empty);
+        return;
+      }
+      items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'playlist-row';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = item.name || item.url;
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const playBtn = document.createElement('button');
+        playBtn.className = 'mini-btn';
+        playBtn.textContent = 'Use';
+        playBtn.addEventListener('click', () => {
+          state.settings.soundcloudUrl = item.url;
+          document.getElementById('soundcloudUrl').value = item.url;
+          setSoundcloudSource(item.url);
+          saveSettings();
+        });
+        const delBtn = document.createElement('button');
+        delBtn.className = 'mini-btn secondary';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', () => {
+          state.settings.soundcloudPlaylists.splice(idx, 1);
+          renderPlaylists();
+          saveSettings();
+        });
+        actions.appendChild(playBtn);
+        actions.appendChild(delBtn);
+        row.appendChild(title);
+        row.appendChild(actions);
+        list.appendChild(row);
+      });
+    }
+    function renderDiaryHistory() {
+      const wrap = document.getElementById('diaryHistory');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      if (!state.diaryEntries.length) {
+        const empty = document.createElement('div');
+        empty.textContent = 'No previous notes yet.';
+        empty.style.color = 'var(--muted)';
+        wrap.appendChild(empty);
+        return;
+      }
+      state.diaryEntries.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'diary-entry';
+        const time = document.createElement('time');
+        time.textContent = new Date(entry.createdAt).toLocaleString();
+        const body = document.createElement('div');
+        body.textContent = entry.text.slice(0, 140) + (entry.text.length > 140 ? '…' : '');
+        card.appendChild(time);
+        card.appendChild(body);
+        card.addEventListener('click', () => {
+          document.getElementById('diaryText').value = entry.text;
+        });
+        wrap.appendChild(card);
+      });
+    }
+    function loadDiaryEntries() {
+      fetch('/diary').then(r => r.ok ? r.json() : { entries: [] }).then(data => {
+        state.diaryEntries = data.entries || [];
+        renderDiaryHistory();
+      }).catch(() => {
+        state.diaryEntries = [];
+        renderDiaryHistory();
+      });
     }
     function handleSoundcloudStart() { if (!state.settings.soundcloudUrl) { document.getElementById('settingsWindow').classList.add('open'); document.getElementById('soundcloudUrl').focus(); return; } setSoundcloudSource(state.settings.soundcloudUrl); }
 
@@ -558,13 +748,43 @@
       document.getElementById('focusMinutes').addEventListener('change', (e) => { state.settings.pomodoro.focus = Math.max(5, Number(e.target.value)); saveSettings(); resetPomodoro(); });
       document.getElementById('breakMinutes').addEventListener('change', (e) => { state.settings.pomodoro.break = Math.max(1, Number(e.target.value)); saveSettings(); if (state.pomodoro.mode === 'break') resetPomodoro(); });
       document.getElementById('applySoundcloud').addEventListener('click', () => { state.settings.soundcloudUrl = document.getElementById('soundcloudUrl').value.trim(); saveSettings(); setSoundcloudSource(state.settings.soundcloudUrl); });
-      document.getElementById('saveDiary').addEventListener('click', () => { state.settings.diary = document.getElementById('diaryText').value; saveSettings(); const label = document.getElementById('diarySaved'); label.textContent = 'Saved just now'; setTimeout(() => label.textContent = 'Not saved', 2500); });
+      document.getElementById('saveDiary').addEventListener('click', () => {
+        const text = document.getElementById('diaryText').value.trim();
+        state.settings.diary = text;
+        saveSettings();
+        const label = document.getElementById('diarySaved');
+        if (!text) { label.textContent = 'Nothing to save'; return; }
+        fetch('/diary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) })
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(({ entry }) => {
+            if (entry) { state.diaryEntries.unshift(entry); renderDiaryHistory(); }
+            label.textContent = 'Saved just now';
+            setTimeout(() => label.textContent = 'Not saved', 2500);
+          })
+          .catch(() => { label.textContent = 'Save failed'; });
+      });
       document.getElementById('openFolderBtn').addEventListener('click', () => { if (window.electronAPI && window.electronAPI.openFolder) { window.electronAPI.openFolder(); } else { alert('Opening the folder requires the Electron build.'); } });
       document.getElementById('overlayBtn').addEventListener('click', () => { if (window.electronAPI && window.electronAPI.startOverlay) { window.electronAPI.startOverlay(); } else { alert('Desktop overlay is available in the Electron build.'); } });
       document.getElementById('wallpaperBtn').addEventListener('click', () => { if (window.electronAPI && window.electronAPI.startWallpaper) { window.electronAPI.startWallpaper(); document.getElementById('stopDesktopBtn').style.display = 'inline-flex'; } else { alert('Wallpaper mode is available in the Electron build.'); } });
       document.getElementById('stopDesktopBtn').addEventListener('click', () => { if (window.electronAPI && window.electronAPI.stopDesktopMode) { window.electronAPI.stopDesktopMode(); document.getElementById('stopDesktopBtn').style.display = 'none'; } });
       document.getElementById('uiModeSelect').addEventListener('change', (e) => { state.settings.uiMode = e.target.value; saveSettings(); showUIMode(state.settings.uiMode); });
       document.getElementById('studyDimToggle').addEventListener('change', (e) => { state.settings.studyDimBackground = e.target.checked; updateScrim(); saveSettings(); });
+      document.getElementById('studyDimStrength').addEventListener('input', (e) => { state.settings.studyDimStrength = Number(e.target.value); updateScrim(); saveSettings(); });
+      document.getElementById('studyTimeFormat').addEventListener('change', (e) => { state.settings.studyTimeFormat = e.target.value || 'HH:mm'; updateStudyClock(); saveSettings(); });
+      document.getElementById('studyDateLang').addEventListener('change', (e) => { state.settings.studyDateLang = e.target.value; buildStudyDateFormatOptions(); updateStudyClock(); saveSettings(); });
+      document.getElementById('studyDateFormat').addEventListener('change', (e) => { state.settings.studyDateFormat = e.target.value; updateStudyClock(); saveSettings(); });
+      document.getElementById('studyDatePosition').addEventListener('change', (e) => { state.settings.studyDatePosition = e.target.value; updateStudyClock(); saveSettings(); });
+      document.getElementById('addPlaylist').addEventListener('click', () => {
+        const name = document.getElementById('playlistName').value.trim();
+        const url = document.getElementById('playlistUrl').value.trim();
+        if (!url) return;
+        state.settings.soundcloudPlaylists = state.settings.soundcloudPlaylists || [];
+        state.settings.soundcloudPlaylists.push({ name: name || url, url });
+        document.getElementById('playlistName').value = '';
+        document.getElementById('playlistUrl').value = '';
+        renderPlaylists();
+        saveSettings();
+      });
     }
 
     function bindGlobal() {
@@ -599,6 +819,7 @@
       bindGlobal();
       loadBackgrounds();
       loadSettings();
+      loadDiaryEntries();
       updateScrim();
     }
 
