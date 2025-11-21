@@ -41,6 +41,10 @@ function startServer(options = {}) {
     dateLang: defaultLocale,
     lang: defaultLocale,
     bgConfigs: [],
+    slideshowInterval: 30,
+    soundcloudUrl: '',
+    pomodoro: { focus: 25, break: 5 },
+    diary: '',
   };
   if (fs.existsSync(settingsFile)) {
     try {
