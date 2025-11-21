@@ -45,6 +45,8 @@ function startServer(options = {}) {
     soundcloudUrl: '',
     pomodoro: { focus: 25, break: 5 },
     diary: '',
+    uiMode: 'study',
+    studyDimBackground: true,
   };
   if (fs.existsSync(settingsFile)) {
     try {
