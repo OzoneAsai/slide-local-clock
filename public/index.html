@@ -8,50 +8,48 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --glass: rgba(16, 18, 27, 0.55);
-      --glass-strong: rgba(16, 18, 27, 0.8);
+      --glass: rgba(10, 12, 20, 0.64);
+      --glass-strong: rgba(8, 10, 18, 0.82);
       --accent: #7ad7f0;
       --accent-strong: #53c3e0;
       --text: #f5f8ff;
       --muted: #a8b3c5;
-      --card-radius: 18px;
-      --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      --shadow: 0 18px 46px rgba(0, 0, 0, 0.45);
+      --radius: 16px;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; width: 100%; font-family: 'Noto Sans JP', 'Space Grotesk', system-ui, -apple-system, sans-serif; background: #04060b; color: var(--text); }
+    html, body { margin: 0; height: 100%; width: 100%; font-family: 'Noto Sans JP', 'Space Grotesk', system-ui, -apple-system, sans-serif; background: #05070e; color: var(--text); }
     body { overflow: hidden; }
     #app { position: relative; height: 100%; width: 100%; }
     #bg { position: absolute; inset: 0; background-size: cover; background-position: center; transition: background-image 1s ease, transform 60s ease; transform: scale(1.02); }
-    #bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(4,6,11,0.65) 0%, rgba(4,6,11,0.45) 50%, rgba(4,6,11,0.8) 100%); }
-    .content { position: relative; z-index: 2; height: 100%; width: 100%; padding: 32px 40px; display: grid; grid-template-columns: 90px 1fr 360px; gap: 24px; }
-    .side-nav { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 16px 12px; background: var(--glass); border-radius: var(--card-radius); backdrop-filter: blur(6px); box-shadow: var(--shadow); }
-    .nav-btn { width: 52px; height: 52px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: grid; place-items: center; font-size: 22px; transition: transform 0.2s ease, background 0.2s ease, border 0.2s ease; }
-    .nav-btn span { font-size: 12px; font-weight: 600; letter-spacing: 0.03em; }
-    .nav-btn:hover { transform: translateY(-2px); background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.16); }
-    .nav-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #041015; box-shadow: 0 10px 18px rgba(83,195,224,0.35); }
-    .main-grid { display: grid; grid-template-rows: auto 1fr auto; gap: 20px; }
-    .clock-card { padding: 20px 24px; background: var(--glass); border-radius: var(--card-radius); box-shadow: var(--shadow); backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 8px; }
-    .clock-time { font-size: 54px; font-weight: 600; letter-spacing: 2px; text-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-    .clock-date { color: var(--muted); font-size: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: 0.1em; }
-    .clock-date .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; }
-    .diary-panel { background: var(--glass); border-radius: var(--card-radius); box-shadow: var(--shadow); padding: 16px 18px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: center; }
-    .diary-panel h3 { margin: 0; font-size: 16px; color: var(--muted); }
-    .diary-entry { width: 100%; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.05); color: var(--text); font-size: 14px; min-height: 88px; resize: vertical; }
-    .diary-save { justify-self: end; padding: 10px 16px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #041015; font-weight: 700; cursor: pointer; box-shadow: 0 8px 16px rgba(83,195,224,0.35); }
-    .player-card { display: grid; grid-template-columns: 70px 1fr 120px; gap: 12px; padding: 16px 18px; background: var(--glass); border-radius: var(--card-radius); box-shadow: var(--shadow); align-items: center; }
-    .artwork { width: 70px; height: 70px; border-radius: 14px; background: linear-gradient(135deg,#3b3f4c,#1c1f2a); display: grid; place-items: center; color: var(--muted); font-size: 18px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
-    .track-meta { display: flex; flex-direction: column; gap: 6px; }
-    .track-title { font-size: 16px; font-weight: 600; }
-    .track-desc { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; }
-    .player-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .hud { position: absolute; inset: 0; pointer-events: none; display: flex; justify-content: space-between; align-items: flex-start; padding: 26px; transition: opacity 0.4s ease, transform 0.4s ease; }
+    .hud.hidden { opacity: 0; transform: translateY(-10px); }
+    .clock-chip { pointer-events: auto; padding: 12px 16px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; backdrop-filter: blur(8px); min-width: 140px; box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+    .clock-time { font-size: 42px; font-weight: 700; letter-spacing: 1px; }
+    .clock-date { margin-top: 4px; font-size: 14px; letter-spacing: 0.1em; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+    .clock-date .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .dock { pointer-events: auto; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 8px 10px; backdrop-filter: blur(8px); box-shadow: 0 12px 28px rgba(0,0,0,0.25); }
+    .dock-btn { width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; font-size: 18px; display: grid; place-items: center; transition: transform 0.15s ease, background 0.2s ease; }
+    .dock-btn:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+    .dock .primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #041015; box-shadow: 0 10px 18px rgba(83,195,224,0.35); border-color: transparent; }
+    .window-layer { position: absolute; inset: 0; }
+    .window-shell { position: absolute; background: var(--glass); border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); box-shadow: var(--shadow); padding: 16px; width: min(430px, 90vw); opacity: 0; pointer-events: none; transform: translateY(12px) scale(0.98); transition: opacity 0.25s ease, transform 0.25s ease; }
+    .window-shell[data-open="true"] { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+    .window-shell.floating { right: 32px; top: 18%; }
+    .window-shell.left { left: 32px; top: 18%; }
+    .window-shell.micro { bottom: 34px; left: 50%; transform: translate(-50%, 12px) scale(0.98); width: 360px; }
+    .window-shell.micro[data-open="true"] { transform: translate(-50%, 0) scale(1); }
+    .window-shell.side { top: 0; right: 0; height: 100%; width: min(420px, 94vw); border-radius: 0; border-left: 1px solid rgba(255,255,255,0.1); transform: translateX(28px); opacity: 0; }
+    .window-shell.side[data-open="true"] { transform: translateX(0); opacity: 1; }
+    .window-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .window-title { text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; font-size: 13px; }
+    .window-actions { display: flex; gap: 8px; }
     .ghost-btn { height: 38px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .ghost-btn.icon { width: 38px; padding: 0; justify-content: center; }
     .ghost-btn:hover { background: rgba(255,255,255,0.12); }
-    .player-iframe { width: 100%; border: none; height: 60px; border-radius: 12px; overflow: hidden; }
-    .pomodoro { background: var(--glass-strong); border-radius: var(--card-radius); padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 16px; backdrop-filter: blur(10px); }
-    .pomodoro-header { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-    .pomodoro-timer { display: grid; place-items: center; gap: 6px; }
-    .pomodoro-time { font-size: 48px; font-weight: 700; letter-spacing: 2px; }
-    .pomodoro-phase { color: var(--accent); font-weight: 700; letter-spacing: 0.12em; }
+    .pomodoro { display: flex; flex-direction: column; gap: 14px; }
+    .pomodoro-time { font-size: 46px; font-weight: 700; letter-spacing: 2px; }
+    .pomodoro-phase { color: var(--accent); font-weight: 700; letter-spacing: 0.12em; margin-bottom: 4px; }
     .pomodoro-controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .pill-btn { height: 44px; border-radius: 12px; border: none; background: rgba(255,255,255,0.08); color: var(--text); font-weight: 700; cursor: pointer; letter-spacing: 0.02em; }
     .pill-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #041015; box-shadow: 0 8px 16px rgba(83,195,224,0.35); }
@@ -62,133 +60,224 @@
     .status-dots { display: flex; gap: 6px; }
     .status-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); }
     .status-dots span.active { background: var(--accent); box-shadow: 0 0 0 6px rgba(83,195,224,0.16); }
-    .settings-panel { position: absolute; top: 0; right: 0; width: 360px; height: 100%; background: rgba(8,10,18,0.92); backdrop-filter: blur(12px); box-shadow: -8px 0 24px rgba(0,0,0,0.45); transform: translateX(100%); transition: transform 0.35s ease; padding: 24px; display: flex; flex-direction: column; gap: 18px; z-index: 3; }
-    .settings-panel.open { transform: translateX(0); }
-    .settings-panel h2 { margin: 0; font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .diary { display: flex; flex-direction: column; gap: 12px; }
+    .diary textarea { width: 100%; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.05); color: var(--text); font-size: 14px; min-height: 120px; resize: vertical; }
+    .diary small { color: var(--muted); }
+    .player-iframe { width: 100%; border: none; height: 60px; border-radius: 12px; overflow: hidden; }
+    .player-mini { display: grid; gap: 10px; }
+    .inline-input { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .inline-input input { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); color: var(--text); padding: 10px 12px; }
+    .settings-panel { display: flex; flex-direction: column; gap: 16px; height: 100%; overflow-y: auto; padding-right: 6px; }
     .setting-block { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
     .setting-block label { font-size: 13px; color: var(--muted); letter-spacing: 0.05em; }
     .setting-block input { width: 100%; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); color: var(--text); padding: 10px 12px; }
-    .setting-block button { align-self: flex-end; }
-    .wallpaper-preview { border-radius: 12px; overflow: hidden; height: 120px; background: #0f111c; position: relative; }
+    .wallpaper-preview { border-radius: 12px; overflow: hidden; height: 140px; background: #0f111c; position: relative; }
     .wallpaper-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .wallpaper-actions { display: flex; justify-content: space-between; gap: 8px; }
-    .settings-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: grid; place-items: center; }
+    .badge { display: inline-block; padding: 6px 10px; border-radius: 10px; background: rgba(122,215,240,0.12); color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; }
     .diary-toast { position: fixed; bottom: 28px; right: 28px; background: rgba(18,22,33,0.9); color: var(--text); padding: 12px 16px; border-radius: 12px; box-shadow: var(--shadow); opacity: 0; transform: translateY(20px); transition: all 0.25s ease; z-index: 5; }
     .diary-toast.show { opacity: 1; transform: translateY(0); }
-    .badge { display: inline-block; padding: 6px 10px; border-radius: 10px; background: rgba(122,215,240,0.12); color: var(--accent); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; }
+    @media (max-width: 768px) {
+      .dock { width: 100%; justify-content: flex-end; }
+      .clock-chip { font-size: 14px; }
+      .window-shell { left: 12px; right: 12px; width: auto; }
+      .window-shell.side { border-radius: 0; }
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="bg"></div>
-    <div class="content">
-      <aside class="side-nav">
-        <button class="nav-btn primary" id="diaryToggle" title="日記"><span>📔</span></button>
-        <button class="nav-btn" id="settingsToggle" title="設定"><span>⚙️</span></button>
-      </aside>
-      <section class="main-grid">
-        <div class="clock-card">
-          <div class="clock-time" id="time">--:--</div>
-          <div class="clock-date" id="date"><span class="dot"></span> --/-- (---)</div>
-        </div>
-        <div class="diary-panel">
-          <div>
-            <h3>今日のメモ</h3>
-            <textarea id="diaryInput" class="diary-entry" placeholder="気づきや感謝をここに書き留めてください。"></textarea>
-          </div>
-          <button class="diary-save" id="diarySave">保存</button>
-        </div>
-        <div class="player-card">
-          <div class="artwork">♪</div>
-          <div class="track-meta">
-            <div class="badge">SoundCloud</div>
-            <div class="track-title" id="trackTitle">Connect your vibe</div>
-            <div class="track-desc">小さなプレイヤーで、集中の邪魔をしません。</div>
-            <iframe id="scPlayer" class="player-iframe" allow="autoplay" title="SoundCloud Player"></iframe>
-          </div>
-          <div class="player-actions">
-            <input type="url" id="soundUrl" placeholder="SoundCloud トラック/プレイリスト URL" style="width:100%;" />
-            <button class="ghost-btn" id="loadSound">接続</button>
-          </div>
-        </div>
-      </section>
-      <section class="pomodoro">
-        <div class="pomodoro-header">
-          <span>POMODORO TIMER</span>
-          <div class="status-dots" id="statusDots">
-            <span class="active"></span><span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="pomodoro-timer">
-          <div class="pomodoro-time" id="pomodoroTime">25:00</div>
-          <div class="pomodoro-phase" id="pomodoroPhase">FOCUS</div>
-        </div>
-        <div class="pomodoro-controls">
-          <button class="pill-btn" id="resetPomodoro">リセット</button>
-          <button class="pill-btn primary" id="togglePomodoro">スタート</button>
-          <button class="pill-btn" id="skipPomodoro">スキップ</button>
-        </div>
-        <div class="pomodoro-config">
-          <div class="input-chip">
-            <span>集中 (分)</span>
-            <input type="number" id="focusLength" min="5" max="90" value="25">
-          </div>
-          <div class="input-chip">
-            <span>休憩 (分)</span>
-            <input type="number" id="breakLength" min="3" max="45" value="5">
-          </div>
-        </div>
-      </section>
+    <div class="hud">
+      <div class="clock-chip">
+        <div class="clock-time" id="time">--:--</div>
+        <div class="clock-date" id="date"><span class="dot"></span> --/-- (---)</div>
+      </div>
+      <div class="dock" aria-label="Quick controls">
+        <button class="dock-btn" data-window="pomodoro" title="ポモドーロ">⏱️</button>
+        <button class="dock-btn" id="soundToggle" title="SoundCloud">▶️</button>
+        <button class="dock-btn" data-window="diary" title="日記">📔</button>
+        <button class="dock-btn" data-window="settings" title="設定">⚙️</button>
+      </div>
     </div>
 
-    <div class="settings-panel" id="settingsPanel">
-      <button class="settings-close" id="settingsClose">✕</button>
-      <h2>Settings</h2>
-      <div class="setting-block">
-        <label>壁紙ローテーション</label>
-        <div class="wallpaper-preview"><img id="wallpaperPreview" alt="Wallpaper preview"></div>
-        <div class="wallpaper-actions">
-          <button class="ghost-btn" id="prevBg">前へ</button>
-          <button class="ghost-btn" id="nextBg">次へ</button>
-          <button class="ghost-btn" id="shuffleBg">シャッフル</button>
-        </div>
-        <label for="intervalInput">切り替え間隔 (秒)</label>
-        <input type="number" id="intervalInput" min="5" value="60">
-      </div>
-      <div class="setting-block">
-        <label for="soundUrlSetting">SoundCloud URL</label>
-        <input type="url" id="soundUrlSetting" placeholder="https://soundcloud.com/...">
-        <button class="ghost-btn" id="saveSoundUrl">保存して再接続</button>
-      </div>
-      <div class="setting-block">
-        <label>Pomodoro プリセット</label>
-        <div class="pomodoro-config">
-          <div class="input-chip">
-            <span>集中 (分)</span>
-            <input type="number" id="focusPreset" min="5" max="90" value="25">
-          </div>
-          <div class="input-chip">
-            <span>休憩 (分)</span>
-            <input type="number" id="breakPreset" min="3" max="45" value="5">
+    <div class="window-layer" id="windowLayer">
+      <div class="window-shell floating" id="pomodoroWindow" data-open="false">
+        <div class="window-head">
+          <span class="window-title">Pomodoro Timer</span>
+          <div class="window-actions">
+            <div class="status-dots" id="statusDots"><span class="active"></span><span></span><span></span><span></span></div>
+            <button class="ghost-btn icon" data-close="pomodoroWindow">✕</button>
           </div>
         </div>
-        <button class="ghost-btn" id="applyPreset">プリセットを適用</button>
+        <div class="pomodoro">
+          <div>
+            <div class="pomodoro-time" id="pomodoroTime">25:00</div>
+            <div class="pomodoro-phase" id="pomodoroPhase">FOCUS</div>
+          </div>
+          <div class="pomodoro-controls">
+            <button class="pill-btn" id="resetPomodoro">リセット</button>
+            <button class="pill-btn primary" id="togglePomodoro">スタート</button>
+            <button class="pill-btn" id="skipPomodoro">スキップ</button>
+          </div>
+          <div class="pomodoro-config">
+            <div class="input-chip">
+              <span>集中 (分)</span>
+              <input type="number" id="focusLength" min="5" max="90" value="25">
+            </div>
+            <div class="input-chip">
+              <span>休憩 (分)</span>
+              <input type="number" id="breakLength" min="3" max="45" value="5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="window-shell left" id="diaryWindow" data-open="false">
+        <div class="window-head">
+          <span class="window-title">Diary</span>
+          <div class="window-actions">
+            <button class="ghost-btn icon" data-close="diaryWindow">✕</button>
+          </div>
+        </div>
+        <div class="diary">
+          <small>静かに残したいときだけ開く折りたたみ式です。</small>
+          <textarea id="diaryInput" placeholder="気づきや感謝をここに書き留めてください。"></textarea>
+          <div style="display:flex; justify-content: flex-end;">
+            <button class="ghost-btn primary" id="diarySave">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="window-shell micro" id="playerWindow" data-open="false">
+        <div class="window-head">
+          <span class="window-title">SoundCloud Link</span>
+          <div class="window-actions">
+            <span class="badge">Mini</span>
+            <button class="ghost-btn icon" data-close="playerWindow">✕</button>
+          </div>
+        </div>
+        <div class="player-mini">
+          <div class="inline-input">
+            <input type="url" id="soundUrl" placeholder="SoundCloud トラック/プレイリスト URL">
+            <button class="ghost-btn" id="loadSound" title="Start playing">▶ start</button>
+          </div>
+          <iframe id="scPlayer" class="player-iframe" allow="autoplay" title="SoundCloud Player"></iframe>
+          <small style="color:var(--muted);">接続後はSoundCloud側のオーバーレイに任せてミニ表示のままにしてあります。</small>
+        </div>
+      </div>
+
+      <div class="window-shell side" id="settingsWindow" data-open="false">
+        <div class="window-head">
+          <span class="window-title">Settings</span>
+          <div class="window-actions">
+            <button class="ghost-btn icon" data-close="settingsWindow">✕</button>
+          </div>
+        </div>
+        <div class="settings-panel">
+          <div class="setting-block">
+            <label>壁紙ローテーション</label>
+            <div class="wallpaper-preview"><img id="wallpaperPreview" alt="Wallpaper preview"></div>
+            <div class="wallpaper-actions">
+              <button class="ghost-btn" id="prevBg">前へ</button>
+              <button class="ghost-btn" id="nextBg">次へ</button>
+              <button class="ghost-btn" id="shuffleBg">シャッフル</button>
+            </div>
+            <label for="intervalInput">切り替え間隔 (秒)</label>
+            <input type="number" id="intervalInput" min="5" value="60">
+          </div>
+          <div class="setting-block">
+            <label for="soundUrlSetting">SoundCloud URL</label>
+            <input type="url" id="soundUrlSetting" placeholder="https://soundcloud.com/...">
+            <button class="ghost-btn" id="saveSoundUrl">保存して再接続</button>
+          </div>
+          <div class="setting-block">
+            <label>Pomodoro プリセット</label>
+            <div class="pomodoro-config">
+              <div class="input-chip">
+                <span>集中 (分)</span>
+                <input type="number" id="focusPreset" min="5" max="90" value="25">
+              </div>
+              <div class="input-chip">
+                <span>休憩 (分)</span>
+                <input type="number" id="breakPreset" min="3" max="45" value="5">
+              </div>
+            </div>
+            <button class="ghost-btn" id="applyPreset">プリセットを適用</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="diary-toast" id="toast">日記を保存しました。</div>
   </div>
+
   <script>
     const timeEl = document.getElementById('time');
     const dateEl = document.getElementById('date');
     const bgEl = document.getElementById('bg');
+    const windowLayer = document.getElementById('windowLayer');
 
-    const settingsPanel = document.getElementById('settingsPanel');
-    const settingsToggle = document.getElementById('settingsToggle');
-    const settingsClose = document.getElementById('settingsClose');
+    const windows = {
+      pomodoro: document.getElementById('pomodoroWindow'),
+      diary: document.getElementById('diaryWindow'),
+      settings: document.getElementById('settingsWindow'),
+      player: document.getElementById('playerWindow'),
+    };
 
-    const diaryToggle = document.getElementById('diaryToggle');
-    const diaryPanel = document.querySelector('.diary-panel');
+    const hud = document.querySelector('.hud');
+    let hudTimer = null;
+
+    function anyWindowOpen() {
+      return Object.values(windows).some(w => w.getAttribute('data-open') === 'true');
+    }
+
+    function scheduleHudHide() {
+      clearTimeout(hudTimer);
+      if (anyWindowOpen()) {
+        hud.classList.remove('hidden');
+        return;
+      }
+      hudTimer = setTimeout(() => hud.classList.add('hidden'), 5200);
+    }
+
+    function revealHud() {
+      hud.classList.remove('hidden');
+      scheduleHudHide();
+    }
+
+    const dockButtons = document.querySelectorAll('[data-window]');
+    dockButtons.forEach(btn => btn.addEventListener('click', () => toggleWindow(btn.dataset.window)));
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => setWindow(btn.dataset.close.replace('Window',''), false));
+    });
+
+    function setWindow(name, open) {
+      const target = windows[name];
+      if (!target) return;
+      target.setAttribute('data-open', open ? 'true' : 'false');
+      scheduleHudHide();
+    }
+
+    function toggleWindow(name) {
+      const target = windows[name];
+      if (!target) return;
+      const isOpen = target.getAttribute('data-open') === 'true';
+      Object.keys(windows).forEach(key => {
+        if (key !== name && key !== 'player') setWindow(key, false);
+      });
+      setWindow(name, !isOpen);
+    }
+
+    function closeAll() {
+      Object.keys(windows).forEach(key => setWindow(key, false));
+    }
+
+    bgEl.addEventListener('click', closeAll);
+    document.addEventListener('mousemove', revealHud);
+    document.addEventListener('keydown', revealHud);
+
     const diaryInput = document.getElementById('diaryInput');
     const diarySave = document.getElementById('diarySave');
     const toast = document.getElementById('toast');
@@ -198,7 +287,7 @@
     const soundUrlSetting = document.getElementById('soundUrlSetting');
     const loadSound = document.getElementById('loadSound');
     const saveSoundUrl = document.getElementById('saveSoundUrl');
-    const trackTitle = document.getElementById('trackTitle');
+    const soundToggle = document.getElementById('soundToggle');
 
     const focusInput = document.getElementById('focusLength');
     const breakInput = document.getElementById('breakLength');
@@ -219,6 +308,7 @@
     const intervalInput = document.getElementById('intervalInput');
 
     let backgrounds = [];
+    let curatedBackgrounds = [];
     let currentBg = 0;
     let slideTimer = null;
 
@@ -245,9 +335,9 @@
     }
 
     function setBackground(index) {
-      if (!backgrounds.length) return;
-      currentBg = (index + backgrounds.length) % backgrounds.length;
-      const url = `/static/${backgrounds[currentBg]}`;
+      if (!curatedBackgrounds.length) return;
+      currentBg = (index + curatedBackgrounds.length) % curatedBackgrounds.length;
+      const url = `/static/${curatedBackgrounds[currentBg]}`;
       bgEl.style.backgroundImage = `url('${url}')`;
       wallpaperPreview.src = url;
     }
@@ -261,26 +351,66 @@
       }, interval);
     }
 
+    function filterBackgrounds(list) {
+      const checks = list.map(file => new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          if (img.width >= 1200 && img.height >= 800) {
+            resolve(file);
+          } else {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = `/static/${file}`;
+      }));
+      return Promise.all(checks).then(results => results.filter(Boolean));
+    }
+
     function loadBackgrounds() {
       fetch('/backgrounds')
         .then(r => r.json())
         .then(list => {
           backgrounds = list;
-          if (backgrounds.length) {
+          return filterBackgrounds(list);
+        })
+        .then(curated => {
+          curatedBackgrounds = curated.length ? curated : backgrounds;
+          if (curatedBackgrounds.length) {
             setBackground(0);
             scheduleSlide();
           }
         });
     }
 
-    function openSettings() { settingsPanel.classList.add('open'); }
-    function closeSettings() { settingsPanel.classList.remove('open'); }
+    function openSoundWindow() {
+      setWindow('player', true);
+    }
 
-    settingsToggle.addEventListener('click', openSettings);
-    settingsClose.addEventListener('click', closeSettings);
+    function setSound(url, openWindow = true) {
+      if (!url) return;
+      const embed = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%237ad7f0&inverse=false&auto_play=true&show_user=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false`;
+      scPlayer.src = embed;
+      if (openWindow) openSoundWindow();
+    }
 
-    diaryToggle.addEventListener('click', () => {
-      diaryPanel.style.display = diaryPanel.style.display === 'none' ? '' : 'none';
+    loadSound.addEventListener('click', () => {
+      setSound(soundUrl.value.trim(), true);
+      soundUrlSetting.value = soundUrl.value.trim();
+      saveSettings();
+    });
+
+    soundToggle.addEventListener('click', () => {
+      openSoundWindow();
+      if (soundUrl.value.trim()) {
+        setSound(soundUrl.value.trim(), true);
+      }
+    });
+
+    saveSoundUrl.addEventListener('click', () => {
+      soundUrl.value = soundUrlSetting.value.trim();
+      setSound(soundUrl.value, true);
+      saveSettings();
     });
 
     diarySave.addEventListener('click', () => {
@@ -290,25 +420,6 @@
     });
 
     diaryInput.value = localStorage.getItem('daily-diary') || '';
-
-    function setSound(url) {
-      if (!url) return;
-      const embed = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%237ad7f0&inverse=false&auto_play=false&show_user=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false`;
-      scPlayer.src = embed;
-      trackTitle.textContent = 'Playing from SoundCloud';
-    }
-
-    loadSound.addEventListener('click', () => {
-      setSound(soundUrl.value.trim());
-      soundUrlSetting.value = soundUrl.value.trim();
-      saveSettings();
-    });
-
-    saveSoundUrl.addEventListener('click', () => {
-      soundUrl.value = soundUrlSetting.value.trim();
-      setSound(soundUrl.value);
-      saveSettings();
-    });
 
     function updatePomodoroDisplay() {
       const mins = Math.floor(pomodoro.remaining / 60);
@@ -426,7 +537,7 @@
           if (conf.soundUrl) {
             soundUrl.value = conf.soundUrl;
             soundUrlSetting.value = conf.soundUrl;
-            setSound(conf.soundUrl);
+            setSound(conf.soundUrl, false);
           }
           scheduleSlide();
         });
@@ -434,8 +545,14 @@
 
     prevBg.addEventListener('click', () => { setBackground(currentBg - 1); scheduleSlide(); });
     nextBg.addEventListener('click', () => { setBackground(currentBg + 1); scheduleSlide(); });
-    shuffleBg.addEventListener('click', () => { setBackground(Math.floor(Math.random() * backgrounds.length)); scheduleSlide(); });
+    shuffleBg.addEventListener('click', () => {
+      if (!curatedBackgrounds.length) return;
+      setBackground(Math.floor(Math.random() * curatedBackgrounds.length));
+      scheduleSlide();
+    });
     intervalInput.addEventListener('change', () => { scheduleSlide(); saveSettings(); });
+
+    scheduleHudHide();
 
     loadBackgrounds();
     loadSettings();
