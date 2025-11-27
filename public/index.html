@@ -20,9 +20,11 @@
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Zen Kaku Gothic New', 'Space Grotesk', sans-serif; color: var(--text); background: #05070c; }
-    #bg { position: fixed; inset: 0; background-size: cover; background-position: center; transition: background-image 1s ease-in-out, filter 0.6s ease; }
+    .bg-layer { position: fixed; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.9s ease, filter 0.6s ease; }
+    .bg-layer.visible { opacity: 1; }
     .blur { filter: blur(8px); }
-    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,calc(0.2 * var(--scrim-strength))) 0%, rgba(5,7,12,calc(0.75 * var(--scrim-strength))) 100%); pointer-events: none; transition: background 0.2s ease; }
+    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,calc(0.2 * var(--scrim-strength))) 0%, rgba(5,7,12,calc(0.75 * var(--scrim-strength))) 100%); pointer-events: none; transition: background 0.6s ease; opacity: 0; }
+    #scrim.dim-active { opacity: 1; transition: background 0.6s ease, opacity 0.6s ease; }
     #scrim.hidden { display: none; }
     .hidden { display: none !important; }
 
@@ -122,7 +124,8 @@
   </style>
 </head>
 <body>
-  <div id="bg"></div>
+  <div id="bgA" class="bg-layer visible"></div>
+  <div id="bgB" class="bg-layer"></div>
   <div id="scrim"></div>
   <button id="modeToggle" class="mode-switch">Switch UI</button>
 
@@ -430,6 +433,7 @@
       backgrounds: [],
       currentBg: 0,
       slideTimeoutId: null,
+      activeBgLayer: 'A',
       settings: { ...defaultSettings },
       pomodoro: { mode: 'focus', remaining: 25 * 60, running: false, timer: null },
       diaryEntries: []
@@ -508,16 +512,36 @@
       const scrim = document.getElementById('scrim');
       const strength = state.settings.studyDimBackground ? (state.settings.studyDimStrength ?? 0.65) : 0;
       document.documentElement.style.setProperty('--scrim-strength', strength);
-      if (strength > 0.01) scrim.classList.remove('hidden'); else scrim.classList.add('hidden');
+      scrim.classList.remove('hidden');
+      if (strength > 0.01) {
+        scrim.classList.add('dim-active');
+      } else {
+        scrim.classList.remove('dim-active');
+        setTimeout(() => {
+          if (!scrim.classList.contains('dim-active')) scrim.classList.add('hidden');
+        }, 650);
+      }
     }
 
     function setBackground(imgPath) {
-      const bgDiv = document.getElementById('bg');
-      bgDiv.style.backgroundImage = `url('/static/${imgPath}')`;
+      const nextLayerId = state.activeBgLayer === 'A' ? 'bgB' : 'bgA';
+      const currentLayerId = state.activeBgLayer === 'A' ? 'bgA' : 'bgB';
+      const nextLayer = document.getElementById(nextLayerId);
+      const currentLayer = document.getElementById(currentLayerId);
       const config = state.settings.bgConfigs[state.currentBg] || {};
-      if (config.blur) { bgDiv.classList.add('blur'); } else { bgDiv.classList.remove('blur'); }
+
+      nextLayer.style.backgroundImage = `url('/static/${imgPath}')`;
+      nextLayer.classList.add('visible');
+      currentLayer.classList.remove('visible');
+
+      const toggleBlur = (layer) => layer.classList.toggle('blur', !!config.blur);
+      toggleBlur(nextLayer);
+      toggleBlur(currentLayer);
+
       const classicClock = document.getElementById('classicClock');
       if (classicClock) { classicClock.style.textShadow = config.gradientBlur === false ? 'none' : '0 0 20px rgba(0,0,0,0.8)'; }
+
+      state.activeBgLayer = state.activeBgLayer === 'A' ? 'B' : 'A';
     }
     function scheduleNextSlide() {
       if (state.slideTimeoutId) clearTimeout(state.slideTimeoutId);
