@@ -17,14 +17,18 @@
       --card-radius: 18px;
       --shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
       --scrim-strength: 0.65;
+      --bg-fade-ms: 900ms;
+      --bg-filter-ms: 600ms;
+      --scrim-fade-ms: 600ms;
+      --bg-ease: ease;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Zen Kaku Gothic New', 'Space Grotesk', sans-serif; color: var(--text); background: #05070c; }
-    .bg-layer { position: fixed; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.9s ease, filter 0.6s ease; }
+    .bg-layer { position: fixed; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity var(--bg-fade-ms) var(--bg-ease), filter var(--bg-filter-ms) var(--bg-ease); }
     .bg-layer.visible { opacity: 1; }
     .blur { filter: blur(8px); }
-    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,calc(0.2 * var(--scrim-strength))) 0%, rgba(5,7,12,calc(0.75 * var(--scrim-strength))) 100%); pointer-events: none; transition: background 0.6s ease; opacity: 0; }
-    #scrim.dim-active { opacity: 1; transition: background 0.6s ease, opacity 0.6s ease; }
+    #scrim { position: fixed; inset: 0; background: linear-gradient(180deg, rgba(5,7,12,calc(0.2 * var(--scrim-strength))) 0%, rgba(5,7,12,calc(0.75 * var(--scrim-strength))) 100%); pointer-events: none; transition: background var(--scrim-fade-ms) var(--bg-ease); opacity: 0; }
+    #scrim.dim-active { opacity: 1; transition: background var(--scrim-fade-ms) var(--bg-ease), opacity var(--scrim-fade-ms) var(--bg-ease); }
     #scrim.hidden { display: none; }
     .hidden { display: none !important; }
 
@@ -134,7 +138,6 @@
       <div class="top-row">
         <div class="clock-card">
           <div class="clock-stack" id="studyClockStack">
-            <p class="clock-date" id="studyWeekday">-- --</p>
             <h1 class="clock-time" id="studyTime">--:--</h1>
             <p class="clock-date" id="studyDate">--/--/--</p>
           </div>
@@ -238,6 +241,28 @@
           <div class="field">
             <label>Slideshow interval (seconds)</label>
             <input type="number" id="bgInterval" min="5" max="600" step="5" value="30">
+          </div>
+          <div class="field">
+            <label>Wallpaper fade (ms)</label>
+            <input type="number" id="wallpaperFadeMs" min="0" max="5000" step="50" value="900">
+          </div>
+          <div class="field">
+            <label>Blur/filter transition (ms)</label>
+            <input type="number" id="wallpaperFilterMs" min="0" max="5000" step="50" value="600">
+          </div>
+          <div class="field">
+            <label>Dim fade (ms)</label>
+            <input type="number" id="scrimFadeMs" min="0" max="5000" step="50" value="600">
+          </div>
+          <div class="field">
+            <label>Transition easing</label>
+            <select id="transitionEasing">
+              <option value="ease">Ease</option>
+              <option value="ease-in-out">Ease in-out</option>
+              <option value="linear">Linear</option>
+              <option value="ease-in">Ease in</option>
+              <option value="ease-out">Ease out</option>
+            </select>
           </div>
           <div class="inline-controls">
             <button class="mini-btn" id="openFolderBtn">Open folder</button>
@@ -416,6 +441,10 @@
       lang: 'en-US',
       bgConfigs: [],
       slideshowInterval: 30,
+      wallpaperFadeMs: 900,
+      wallpaperFilterMs: 600,
+      scrimFadeMs: 600,
+      transitionEasing: 'ease',
       soundcloudUrl: '',
       soundcloudPlaylists: [],
       pomodoro: { focus: 25, break: 5 },
@@ -490,24 +519,30 @@
       const dateLang = state.settings.studyDateLang || 'ja-JP';
       const dateFmt = state.settings.studyDateFormat || 'numeric';
       const placement = state.settings.studyDatePosition || 'above';
-      const weekdayEl = document.getElementById('studyWeekday');
       const dateEl = document.getElementById('studyDate');
       const stack = document.getElementById('studyClockStack');
       document.getElementById('studyTime').textContent = formatTime(now, timeFmt);
-      weekdayEl.textContent = new Intl.DateTimeFormat(dateLang, { weekday: 'short' }).format(now);
       dateEl.textContent = formatDate(now, dateLang, dateFmt);
 
       if (placement === 'hidden') {
-        weekdayEl.style.display = 'none';
         dateEl.style.display = 'none';
         stack.classList.remove('date-below');
       } else {
-        weekdayEl.style.display = '';
         dateEl.style.display = '';
         if (placement === 'below') stack.classList.add('date-below'); else stack.classList.remove('date-below');
       }
     }
     function updateClassicClock() { const now = new Date(); document.getElementById('classicTime').textContent = formatTime(now, state.settings.timeFormat || 'HH:mm:ss'); document.getElementById('classicDate').textContent = formatDate(now, state.settings.dateLang || 'en-US', state.settings.dateFormat || 'numeric'); }
+    function applyTransitionSettings() {
+      const root = document.documentElement;
+      const fade = Number(state.settings.wallpaperFadeMs ?? 900);
+      const filter = Number(state.settings.wallpaperFilterMs ?? 600);
+      const scrim = Number(state.settings.scrimFadeMs ?? 600);
+      root.style.setProperty('--bg-fade-ms', `${fade}ms`);
+      root.style.setProperty('--bg-filter-ms', `${filter}ms`);
+      root.style.setProperty('--scrim-fade-ms', `${scrim}ms`);
+      root.style.setProperty('--bg-ease', state.settings.transitionEasing || 'ease');
+    }
     function updateScrim() {
       const scrim = document.getElementById('scrim');
       const strength = state.settings.studyDimBackground ? (state.settings.studyDimStrength ?? 0.65) : 0;
@@ -519,7 +554,7 @@
         scrim.classList.remove('dim-active');
         setTimeout(() => {
           if (!scrim.classList.contains('dim-active')) scrim.classList.add('hidden');
-        }, 650);
+        }, (state.settings.scrimFadeMs ?? 600) + 50);
       }
     }
 
@@ -589,6 +624,10 @@
     function saveSettings() { fetch('/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state.settings) }); }
     function applySettingsToUI() {
       document.getElementById('bgInterval').value = state.settings.slideshowInterval || 30;
+      document.getElementById('wallpaperFadeMs').value = state.settings.wallpaperFadeMs ?? 900;
+      document.getElementById('wallpaperFilterMs').value = state.settings.wallpaperFilterMs ?? 600;
+      document.getElementById('scrimFadeMs').value = state.settings.scrimFadeMs ?? 600;
+      document.getElementById('transitionEasing').value = state.settings.transitionEasing || 'ease';
       document.getElementById('soundcloudUrl').value = state.settings.soundcloudUrl || '';
       document.getElementById('focusMinutes').value = state.settings.pomodoro.focus;
       document.getElementById('breakMinutes').value = state.settings.pomodoro.break;
@@ -615,6 +654,7 @@
       applyClassicFont();
       updateTextSize(state.settings.charSizeMultiplier, state.settings.dateSizeRatio);
       buildImageConfigOverlay();
+      applyTransitionSettings();
       updateScrim();
       showUIMode(state.settings.uiMode);
       applyTranslations();
@@ -769,6 +809,10 @@
       document.getElementById('pomodoroReset').addEventListener('click', resetPomodoro);
       document.getElementById('pomodoroSkip').addEventListener('click', skipPomodoro);
       document.getElementById('bgInterval').addEventListener('change', (e) => { state.settings.slideshowInterval = Number(e.target.value) || 30; saveSettings(); scheduleNextSlide(); buildImageConfigOverlay(); });
+      document.getElementById('wallpaperFadeMs').addEventListener('change', (e) => { state.settings.wallpaperFadeMs = Number(e.target.value) || 0; applyTransitionSettings(); saveSettings(); });
+      document.getElementById('wallpaperFilterMs').addEventListener('change', (e) => { state.settings.wallpaperFilterMs = Number(e.target.value) || 0; applyTransitionSettings(); saveSettings(); });
+      document.getElementById('scrimFadeMs').addEventListener('change', (e) => { state.settings.scrimFadeMs = Number(e.target.value) || 0; applyTransitionSettings(); updateScrim(); saveSettings(); });
+      document.getElementById('transitionEasing').addEventListener('change', (e) => { state.settings.transitionEasing = e.target.value || 'ease'; applyTransitionSettings(); saveSettings(); });
       document.getElementById('focusMinutes').addEventListener('change', (e) => { state.settings.pomodoro.focus = Math.max(5, Number(e.target.value)); saveSettings(); resetPomodoro(); });
       document.getElementById('breakMinutes').addEventListener('change', (e) => { state.settings.pomodoro.break = Math.max(1, Number(e.target.value)); saveSettings(); if (state.pomodoro.mode === 'break') resetPomodoro(); });
       document.getElementById('applySoundcloud').addEventListener('click', () => { state.settings.soundcloudUrl = document.getElementById('soundcloudUrl').value.trim(); saveSettings(); setSoundcloudSource(state.settings.soundcloudUrl); });
